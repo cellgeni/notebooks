@@ -11,7 +11,10 @@ RUN apt-get update && \
         fonts-dejavu \
         tzdata \
         gfortran \
-        gcc &&\
+        gcc \
+        openssh-client \
+        openssh-server \
+        rsync &&\
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -100,4 +103,4 @@ RUN MPLBACKEND=Agg python -c "import matplotlib.pyplot" && \
     fix-permissions /home/$NB_USER
 
 RUN for environ in $(ls environments); do conda env create --file environments/$environ; done
-COPY ./files /files
+RUN pip install nbgitpuller && jupyter serverextension enable --py nbgitpuller --sys-prefix

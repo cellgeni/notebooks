@@ -1,12 +1,15 @@
-# cellgeni-notebook
+# notebooks
+[![Docker Repository on Quay](https://quay.io/repository/cellgeni/cellgeni-jupyter/status "Docker Repository on Quay")](https://quay.io/repository/cellgeni/cellgeni-jupyter)
 A Docker image for Cellgeni JupyterHub installation
-Based on [docker-stacks](https://github.com/jupyter/docker-stacks) and used with [Zero to JupyterHub with Kubernetes](https://zero-to-jupyterhub.readthedocs.io/en/latest/).
+Based on [docker-stacks](https://github.com/jupyter/docker-stacks) and used with [Zero to JupyterHub with Kubernetes](https://zero-to-jupyterhub.readthedocs.io/en/latest/) and template notebooks for scientific analysis.
 
 This Docker image is used as default for every user of Cellgeni JupyterHub installation. The installation contains R packages from [jupyter/r-notebook](https://github.com/jupyter/docker-stacks/blob/master/r-notebook/Dockerfile) and Python packages [jupyter/scipy-notebook](https://github.com/jupyter/docker-stacks/blob/master/scipy-notebook/Dockerfile).
 
+`/files` folder contains files that will be copyied into each user's home directory by default.
+`/environments` folder contains conda yaml specifications for custom environments that will be created in the Docker image. To add a new custom environment to the image,
+add your `environments/env-name.yaml` file. `nb_conda_kernels` must be in `dependencies` field to make the environment work as a kernel.
 
-
-## Creating your own conda environment
+## Creating your own conda environment [users]
 
 Default conda environments are not persistent across Jupyter sessions - you can install an additional package, but it will not be there next time you start Jupyter. To have a persistent conda environment, you can create one inside your home folder. 
 

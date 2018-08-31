@@ -6,7 +6,7 @@ This Docker image is used as default for every user of Cellgeni JupyterHub insta
 
 
 
-### Creating your own conda environment
+## Creating your own conda environment
 
 Default conda environments are not persistent across Jupyter sessions - you can install an additional package, but it will not be there next time you start Jupyter. To have a persistent conda environment, you can create one inside your home folder. 
 

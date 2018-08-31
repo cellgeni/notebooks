@@ -1,0 +1,12 @@
+name: scanpy-env
+dependencies:
+ - numpy
+ - pandas
+ - seaborn 
+ - scikit-learn 
+ - statsmodels 
+ - numba
+ - nb_conda_kernels
+ - pip:
+    - scanpy
+  

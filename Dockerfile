@@ -99,4 +99,5 @@ ENV XDG_CACHE_HOME /home/$NB_USER/.cache/
 RUN MPLBACKEND=Agg python -c "import matplotlib.pyplot" && \
     fix-permissions /home/$NB_USER
 
+RUN for environ in $(ls environments); do conda env create --file environments/$environ; done
 COPY ./files /files

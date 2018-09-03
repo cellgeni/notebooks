@@ -14,6 +14,7 @@ RUN apt-get update && \
         gcc \
         openssh-client \
         openssh-server \
+        cmake \
         rsync &&\
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*

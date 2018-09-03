@@ -10,6 +10,5 @@ dependencies:
  - python-igraph
  - pip:
     - scanpy
-    - cmake
     - "--editable=git+https://github.com/DmitryUlyanov/Multicore-TSNE.git#egg=Multicore-TSNE"
   

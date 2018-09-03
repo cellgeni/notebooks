@@ -103,4 +103,4 @@ RUN MPLBACKEND=Agg python -c "import matplotlib.pyplot" && \
     fix-permissions /home/$NB_USER
 
 RUN for environ in $(ls environments); do conda env create --file environments/$environ; done
-RUN pip install nbgitpuller && jupyter serverextension enable --py nbgitpuller --sys-prefix
+COPY poststart.sh /

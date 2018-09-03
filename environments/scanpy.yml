@@ -7,7 +7,8 @@ dependencies:
  - statsmodels 
  - numba
  - nb_conda_kernels
- - igraph
+ - python-igraph
  - pip:
     - scanpy
+    - "--editable=git+https://github.com/DmitryUlyanov/Multicore-TSNE.git"
   

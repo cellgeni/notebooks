@@ -7,6 +7,7 @@ dependencies:
  - statsmodels 
  - numba
  - nb_conda_kernels
+ - igraph
  - pip:
     - scanpy
   

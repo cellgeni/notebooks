@@ -11,7 +11,10 @@ RUN apt-get update && \
         fonts-dejavu \
         tzdata \
         gfortran \
-        gcc &&\
+        gcc \
+        openssh-client \
+        openssh-server \
+        rsync &&\
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -99,5 +102,7 @@ ENV XDG_CACHE_HOME /home/$NB_USER/.cache/
 RUN MPLBACKEND=Agg python -c "import matplotlib.pyplot" && \
     fix-permissions /home/$NB_USER
 
-RUN for environ in $(ls environments); do conda env create --file environments/$environ; done
-COPY ./files /files
+COPY environments /environments
+USER root
+RUN for environ in /environments/*; do echo $environ; conda env create --file $environ; done
+COPY poststart.sh /

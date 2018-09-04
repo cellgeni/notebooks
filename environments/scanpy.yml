@@ -11,6 +11,7 @@ dependencies:
  - nb_conda_kernels
  - python-igraph
  - pip:
+    - pathlib
     - scanpy
     - "--editable=git+https://github.com/DmitryUlyanov/Multicore-TSNE.git#egg=MulticoreTSNE"
   

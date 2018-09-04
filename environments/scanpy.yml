@@ -8,7 +8,6 @@ dependencies:
  - numba
  - nb_conda_kernels
  - pip:
-    - build-essential
     - python-igraph
     - scanpy
     - "--editable=git+https://github.com/DmitryUlyanov/Multicore-TSNE.git#egg=MulticoreTSNE"

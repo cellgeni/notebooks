@@ -14,9 +14,10 @@ add your `environments/env-name.yaml` file. `nb_conda_kernels` must be in `depen
 
 ## Important notices
 
-1. Do not modify files from `data` and `notebooks` folder directly - make a copy and work with a copy. Changes to the original files will not survive the notebook restart.
-2. Do not install software into the environments that are provided by default. Changes to those environments are gone with the server restart. Instead, make a copy of a default environment and install software there. See below for more details.
-3. You can copy files to and from Jupyter both in a web interface and from a terminal. E.g., to copy from the farm locally
+1. Use your Sanger credentials for authentication (HTTPS coming soon!)
+2. Do not modify files from `data` and `notebooks` folder directly - make a copy and work with a copy. Changes to the original files will not survive the notebook restart.
+3. Do not install software into the environments that are provided by default. Changes to those environments are gone with the server restart. Instead, make a copy of a default environment and install software there. See below for more details.
+4. You can copy files to and from Jupyter both in a web interface and from a terminal. E.g., to copy from the farm locally
 ```
 rsync -avzh ak27@farm4-login:/nfs/users/nfs_a/ak27/<some-file-name> /tmp
 ```
@@ -24,6 +25,7 @@ From the local environment to the farm
 ```
 rsync -avzh <some-file-name> ak27@farm4-login:/nfs/users/nfs_a/ak27/
 ```
+5. JupyterHub can't work in VPN at the moment due to web sockets not working through Sanger VPN.
 
 ## Creating your own conda environment [users]
 

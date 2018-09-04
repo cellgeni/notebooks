@@ -9,5 +9,6 @@ dependencies:
  - nb_conda_kernels
  - pip:
     - scanpy
+    # - python-igraph   doesn't work in `conda env install` - had to put it as a separate instruction to Dockerfile
     - "--editable=git+https://github.com/DmitryUlyanov/Multicore-TSNE.git#egg=MulticoreTSNE"
   

@@ -1,4 +1,6 @@
 name: scanpy-env
+channels:
+ - marufr
 dependencies:
  - numpy
  - pandas
@@ -7,8 +9,8 @@ dependencies:
  - statsmodels 
  - numba
  - nb_conda_kernels
+ - python-igraph
  - pip:
-    - python-igraph 
     - scanpy
     - "--editable=git+https://github.com/DmitryUlyanov/Multicore-TSNE.git#egg=MulticoreTSNE"
   

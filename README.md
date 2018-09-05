@@ -26,8 +26,10 @@ From the local environment to the farm
 rsync -avzh <some-file-name> ak27@farm4-login:/nfs/users/nfs_a/ak27/
 ```
 5. JupyterHub can't work in VPN at the moment due to web sockets not working through Sanger VPN.
+6. You can switch to a classic Jupyter interface on jupyter.cellgeni.sanger.ac.uk/user/\<your-username\>/tree
+7. You can use RStudio from JupyterHub. Go to jupyter.cellgeni.sanger.ac.uk/user/\<your-username\>/rstudio. It's also available through "New" -> "RStudio Session" in a classic interface.
 
-## Creating your own conda environment [users]
+## Creating your own conda environment
 
 Default conda environments are not persistent across Jupyter sessions - you can install an additional package, but it will not be there next time you start Jupyter. To have a persistent conda environment, you can create one inside your home folder. 
 

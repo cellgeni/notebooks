@@ -33,6 +33,8 @@ If you need more resources please contact CellGenIT team.
 1. Do not modify files from `data` and `notebooks` folder directly - make a copy and work with a copy. Changes to the original files will not survive the notebook's restart.
 2. Do not install software into the environments that are provided by default. Changes to those environments are gone with the server restart. Instead, make a copy of a default environment and install software there. See below for more details.
 3. Currently JupyterHub can't work on Sanger VPN (NetScaler) due to web sockets not working through the Sanger VPN. This should be solved in the future.
+4. You can switch to a classic Jupyter interface on http://jupyter.cellgeni.sanger.ac.uk/user/\<your-username\>/tree
+5. You can use RStudio from JupyterHub. Go to http://jupyter.cellgeni.sanger.ac.uk/user/\<your-username\>/rstudio. It's also available through "New" -> "RStudio Session" in a classic interface.
 
 ### Notebook templates
 
@@ -53,7 +55,7 @@ To copy from the local environment to the farm:
 rsync -avzh <some-file-name> ak27@farm4-login:/nfs/users/nfs_a/ak27/
 ```
 
-### Install software (python)
+## Creating your own conda environment
 
 Default conda environments are not persistent across Jupyter sessions - you can install an additional package, but it will not be there next time you start Jupyter. To have a persistent conda environment, you can create one inside your `/home` folder:
 

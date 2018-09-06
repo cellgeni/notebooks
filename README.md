@@ -30,10 +30,11 @@ If you need more resources please contact CellGenIT team.
 
 ### Important notes
 
-1. Do not modify files from `data` and `notebooks` folder directly - make a copy and work with a copy. Changes to the original files will not survive the notebook's restart.
-2. Do not install software into the environments that are provided by default. Changes to those environments are gone with the server restart. Instead, make a copy of a default environment and install software there. See below for more details.
-3. Currently JupyterHub can't work on Sanger VPN (NetScaler) due to web sockets not working through the Sanger VPN. This should be solved in the future.
-4. You can switch to a classic Jupyter interface by change the word `lab` in your adress bar to the word `tree`:
+1. **JupyterHub environment and storage are not backed up!!!** Please only use for computations and download your results (and notebooks) afterwards. If you store your data there you can easily lose it. You've been warned!
+2. Do not modify files from `data` and `notebooks` folder directly - make a copy and work with a copy. Changes to the original files will not survive the notebook's restart.
+3. Do not install software into the environments that are provided by default. Changes to those environments are gone with the server restart. Instead, make a copy of a default environment and install software there. See below for more details.
+4. Currently JupyterHub can't work on Sanger VPN (NetScaler) due to web sockets not working through the Sanger VPN. This should be solved in the future.
+5. You can switch to a classic Jupyter interface by change the word `lab` in your adress bar to the word `tree`:
 ```
 http://jupyter.cellgeni.sanger.ac.uk/user/\<your-username\>/tree
 ```

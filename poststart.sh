@@ -2,7 +2,7 @@
 
 # copy default templates
 git clone https://github.com/cellgeni/notebooks git-notebooks
-cp -Rf git-notebooks/files/* .
+cp -Rf git-notebooks/files/ .
 rm -rf git-notebooks
 
 # create local R library

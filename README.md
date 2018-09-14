@@ -93,15 +93,6 @@ R and RStudio are also available on JupyterHub:
 http://jupyter.cellgeni.sanger.ac.uk/user/\<your-username\>/rstudio
 ```
 
-**The first time you login** to JupyterHub please make sure you add a local folder to your `.libPath()`. To do this, start a new Terminal from the Launcher, then start an R session and run the following commands:
-```
-# create a folder for your local R libraries
-dir.create(path = Sys.getenv("R_LIBS_USER"), showWarnings = FALSE, recursive = TRUE)
-# add the folder to the libPaths
-.libPaths( c( Sys.getenv("R_LIBS_USER"), .libPaths() ) )
-```
-This will make sure your installed packages will be saved and ready to be used when you login next time.
-
 To install packages - start a new Terminal from the Launcher, then start an R session and then run your installation scripts.
 
 Installation of packages doesn't yet work from within the RStudio. However, all the packages installed in the Terminal will also be available in RStudio.

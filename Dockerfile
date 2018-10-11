@@ -1,4 +1,4 @@
-FROM quay.io/cellgeni/notebooks-base:latest
+FROM quay.io/cellgeni/notebooks-base:master
 
 USER root
 

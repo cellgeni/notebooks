@@ -45,7 +45,7 @@ We provide some notebook templates with the pre-installed software. These are lo
 
 ```
 mkdir farm
-rsync -avzh ak27@farm4-login:/nfs/users/nfs_a/ak27/<some-file-name> /farm
+rsync -avzh ak27@farm4-login:/nfs/users/nfs_a/ak27/<some-file-name> farm/
 ```
 
 To copy from the local environment to the farm:

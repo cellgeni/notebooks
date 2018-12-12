@@ -14,12 +14,12 @@ This Docker image is used as default for every user of Cellgeni JupyterHub insta
 ## User instructions
 
 1. In your browser go to [https://jupyter.cellgeni.sanger.ac.uk/](https://jupyter.cellgeni.sanger.ac.uk/).
-2. Use your Sanger credentials for authentication. It may take some time to load first time.
+2. Use your Github credentials for authentication. It may take some time to load first time.
 3. Now you are ready to run your notebooks!
 
 ### Resources
 
-At the moment by default every user is given 16Gb of RAM and 4 cpus. Default storage volume is 10G.
+At the moment by default every user is given 16 to 20 Gb of RAM and 2 to 4 cpus. Default storage volume is 30G.
 
 If you need more resources please contact CellGenIT team.
 
@@ -28,7 +28,7 @@ If you need more resources please contact CellGenIT team.
 1. **JupyterHub environment and storage are not backed up!!!** Please only use for computations and download your results (and notebooks) afterwards. If you store your data there you can easily lose it. You've been warned!
 2. Do not modify files from `data` and `notebooks` folder directly - make a copy, put it in a separate folder and work with a copy. Changes to the original files in the `data` and `notebooks` folders will not survive the server updates.
 3. Please read the instructions on package installations below.
-4. Currently JupyterHub can't work on Sanger VPN (NetScaler) due to web sockets not working through the Sanger VPN. This should be solved in the future.
+4. JupyterHub website is public, so you don't need to turn on VPN to use it. However, it is only available to users who messaged us their Github usernames and have been whitelisted. 
 5. You can switch to a classic Jupyter interface by change the word `lab` in your adress bar to the word `tree`:
 ```
 http://jupyter.cellgeni.sanger.ac.uk/user/\<your-username\>/tree
@@ -45,7 +45,7 @@ We provide some notebook templates with the pre-installed software. These are lo
 
 ```
 mkdir farm
-rsync -avzh ak27@farm4-login:/nfs/users/nfs_a/ak27/<some-file-name> /farm
+rsync -avzh ak27@farm4-login:/nfs/users/nfs_a/ak27/<some-file-name> farm/
 ```
 
 To copy from the local environment to the farm:

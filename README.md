@@ -64,9 +64,7 @@ Default conda environments are not persistent across Jupyter sessions - you can 
 ```
 conda create --name myenv
 source activate myenv
-# IMPORTANT! it allows the environment to appear in kernels list
-conda install nb_conda_kernels  
-# conda install all other packages you need
+# conda install all packages you need
 # ...
 ```
 

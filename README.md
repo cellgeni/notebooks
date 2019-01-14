@@ -86,3 +86,13 @@ R and RStudio are also available on JupyterHub:
 ```
 http://jupyter.cellgeni.sanger.ac.uk/user/\<your-username\>/rstudio
 ```
+
+### Troubleshooting
+
+* If RStudio displays an error "Rsession did not start in time", go to the `lab` interface, start terminal, and delete the last R session:
+  ```
+  ls -a .rstudio/sessions/active  # see all active sessions
+  rm -r ./rstudio/sessions/active/<session-name>  # note the name of the last active session and delete it
+  ```
+  and reload RStudio
+

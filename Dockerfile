@@ -4,6 +4,7 @@ USER root
 
 # install all the new non-base packages here
 #
+RUN sudo apt-get install -y libatlas3-base
 RUN sudo update-alternatives --set libblas.so.3 /usr/lib/openblas-base/libblas.so.3
 COPY poststart.sh /
 

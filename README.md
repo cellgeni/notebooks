@@ -89,6 +89,9 @@ http://jupyter.cellgeni.sanger.ac.uk/user/\<your-username\>/rstudio
 
 ### Troubleshooting
 
+Sometimes, a server restart might solve an issue. For that, go to `/hub/home` inside JupyterHub, hit "Stop my server" and reload the page.
+
+* If Rstudio displays "[Errno 111] Connection refused", try restarting the server.
 * If RStudio displays an error "Rsession did not start in time", go to the `lab` interface, start terminal, and delete the last R session:
   ```
   ls -a .rstudio/sessions/active  # see all active sessions

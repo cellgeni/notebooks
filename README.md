@@ -19,9 +19,9 @@ This Docker image is used as default for every user of Cellgeni JupyterHub insta
 
 ### Resources
 
-At the moment by default every user is given 16 to 20 Gb of RAM and 2 to 4 cpus. Default storage volume is 30G.
+At the moment by default every user is given 33 Gb of RAM and 2 (guaranteed) to 4 (maximum, if available) CPUs. Default storage volume is 30G.
 
-If you need more resources please contact CellGenIT team.
+If you need more resources, you can go for https://jupyter-large.cellgeni.sanger.ac.uk. A default user there gets 100 Gb of RAM, 8 to 16 CPUs and 100 Gb of storage. Please use this only when this much resources is really required because this might impact the availability of large instances to other users.
 
 ### Important notes
 

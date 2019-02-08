@@ -12,6 +12,7 @@ COPY poststart.sh /
 # install some github packages
 # see here for with_libpaths description:
 # https://stackoverflow.com/questions/24646065/how-to-specify-lib-directory-when-installing-development-version-r-packages-from
-RUN Rscript -e 'devtools::with_libpaths(new = "/usr/lib/R/site-library/", devtools::install_github("GreenleafLab/motifmatchr"))'
+RUN apt-get update && apt-get install -yq --no-install-recommends r-cran-withr
+RUN Rscript -e 'withr::with_libpaths(new = "/usr/lib/R/site-library/", devtools::install_github("GreenleafLab/motifmatchr"))'
 
 USER $NB_UID

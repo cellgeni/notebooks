@@ -100,6 +100,7 @@ C_data <- C_data[common_genes,]
 
 Now let's merge the datasets:
 ```{r}
+combined_counts <- cbind(counts(A_data), counts(B_data), counts(C_data))
 combined_logcounts <- cbind(logcounts(A_data), logcounts(B_data), logcounts(C_data))
 
 dataset_labels <- rep(c("A", "B", "C"), times = c(ncol(A_data), ncol(B_data), ncol(C_data)))
@@ -111,11 +112,15 @@ cell_names <- c(paste("A-cell", c(1:ncol(A_data))),
 cell_data <- data.frame("dataset" = dataset_labels,
                         "cell_ID" = cell_names)
 
-merged <- SingleCellExperiment(assay = list(logcounts = combined_logcounts),
+merged <- SingleCellExperiment(assay = list(
+                                 counts = combined_counts,
+                                 logcounts = combined_logcounts),
                                colData = cell_data,
                                rowData = list("ID" = common_genes)
 )
 colnames(merged) <- cell_data$cell_ID
+# remove completely zero genes
+merged <- merged[rowSums(counts(merged) > 0) > 0,]
 ```
 
 ## Visualisation
@@ -235,7 +240,6 @@ merged_cca <- SubsetData(merged_cca, subset.name = "var.ratio.pca",
 ```
 
 ```{r align cca subspaces of datasets}
-t1= Sys.time()
 merged_cca <- AlignSubspace(merged_cca,
                                      reduction.type ="cca", #pca aligment can be also done, or both, by c("cca", "pca")
                                      grouping.var = "dataset",
@@ -279,7 +283,7 @@ assay(merged, "limma") <- removeBatchEffect(x = assay(merged, "logcounts"), batc
 ```
 
 ```{r visualize Limma}
-plotPCA(merged, run_args=list(exprs_values = "normcounts"), colour_by = "dataset")
+plotPCA(merged, run_args=list(exprs_values = "logcounts"), colour_by = "dataset")
 plotPCA(merged, run_args=list(exprs_values = "limma"), colour_by = "dataset")
 ```
 

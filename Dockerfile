@@ -6,5 +6,3 @@ USER root
 
 
 COPY poststart.sh /
-
-USER $NB_UID

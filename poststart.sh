@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
 # copy default templates
+if [ -d git-notebooks ]; then
+    rm -rf git-notebooks
+fi
 git clone https://github.com/cellgeni/notebooks git-notebooks
 cp -Rf git-notebooks/files/. .
 rm -rf git-notebooks

@@ -114,11 +114,11 @@ http://jupyter.cellgeni.sanger.ac.uk/user/\<your-username\>/rstudio
 
 Sometimes, a server restart might solve an issue. For that, go to `/hub/home` inside JupyterHub, hit "Stop my server" and reload the page.
 
-* If Rstudio displays "[Errno 111] Connection refused", try restarting the server.
+* If RStudio displays "[Errno 111] Connection refused", try restarting the server.
 * If RStudio displays an error "Rsession did not start in time", go to the `lab` interface, start terminal, and delete the last R session:
   ```
   ls -a .rstudio/sessions/active  # see all active sessions
   rm -r ./rstudio/sessions/active/<session-name>  # note the name of the last active session and delete it
   ```
   and reload RStudio
-
+* If RStudio displays an error "Could not start RStudio in time", it might be because you ran out of disk space. Check your disk usage with `du -ha -d 1 ~`, if the home directory size is close to the limit, you need to delete some files or move to/request a JupyterHub with more space.

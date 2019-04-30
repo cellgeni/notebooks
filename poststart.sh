@@ -10,3 +10,4 @@ rm -rf git-notebooks
 if [ ! -d my-conda-envs/myenv ]; then
     conda create --clone base --name myenv
 fi
+export USER=jovyan

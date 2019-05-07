@@ -44,7 +44,9 @@ helm upgrade jptl jupyterhub/jupyterhub --namespace jptl --version 0.8.0 --value
 
 At the moment by default every user is given 33 Gb of RAM and 2 (guaranteed) to 4 (maximum, if available) CPUs. Default storage volume is 30G.
 
-If you need more resources, you can go for https://jupyter-large.cellgeni.sanger.ac.uk. A default user there gets 100 Gb of RAM, 8 to 16 CPUs and 100 Gb of storage. Please use this only when this much resources is really required because this might impact the availability of large instances to other users.
+If you need more resources, you can go for https://jupyter-large.cellgeni.sanger.ac.uk. A default user there gets 100 Gb of RAM, 4 to 16 CPUs and 100 Gb of storage. Please use this only when this much resources is really required because this might impact the availability of large instances to other users.
+
+For special cases, we have https://jupyter-xl.cellgeni.sanger.ac.uk with 150 Gb of RAM, 150 Gb of storage and 4 to 16 CPU, this one is available upon request. 
 
 ### Important notes
 

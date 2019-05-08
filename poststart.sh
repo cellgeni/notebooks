@@ -10,4 +10,8 @@ rm -rf git-notebooks
 if [ ! -d my-conda-envs/myenv ]; then
     conda create --clone base --name myenv
 fi
+
+Rscript -e 'dir.create(path = Sys.getenv("R_LIBS_USER"), showWarnings = FALSE, recursive = TRUE)'
+Rscript -e '.libPaths( c( Sys.getenv("R_LIBS_USER"), .libPaths() ) )'
+
 export USER=jovyan

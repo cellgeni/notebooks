@@ -105,8 +105,6 @@ RUN Rscript -e 'install.packages("hdf5r",configure.args="--with-hdf5=/usr/bin/h5
 # (do not install anything in the home directory, it will be wiped out when a volume is mounted to the docker container)
 # RUN Rscript -e 'withr::with_libpaths(new = "/usr/lib/R/site-library/", devtools::install_github(c("immunogenomics/harmony", "LTLA/beachmat", "MarioniLab/DropletUtils")))'
 # create local R library
-RUN Rscript -e 'dir.create(path = Sys.getenv("R_LIBS_USER"), showWarnings = FALSE, recursive = TRUE)'
-RUN Rscript -e '.libPaths( c( Sys.getenv("R_LIBS_USER"), .libPaths() ) )'
 
 # PYTHON PACKAGES
 
@@ -193,11 +191,12 @@ RUN mv $HOME/.local/share/jupyter/kernels/julia* $CONDA_DIR/share/jupyter/kernel
 RUN sed -i -e "s/Defaults    requiretty.*/ #Defaults    requiretty/g" /etc/sudoers
 RUN echo "jovyan ALL= (ALL) NOPASSWD: ALL" >> /etc/sudoers.d/jovyan
 
-USER root
-
 # copy template notebooks to the image
-COPY files/data /home/jovyan
-COPY files/notebooks /home/jovyan
+COPY files/install.R /home/jovyan/install.R
+COPY files/install.jl /home/jovyan/install.jl
+
+COPY files/data /home/jovyan/data
+COPY files/notebooks /home/jovyan/notebooks
 
 # copy poststart script
 COPY poststart.sh /

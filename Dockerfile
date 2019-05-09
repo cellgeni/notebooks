@@ -192,9 +192,6 @@ RUN sed -i -e "s/Defaults    requiretty.*/ #Defaults    requiretty/g" /etc/sudoe
 RUN echo "jovyan ALL= (ALL) NOPASSWD: ALL" >> /etc/sudoers.d/jovyan
 
 # copy template notebooks to the image
-COPY files/install.R /home/jovyan/install.R
-COPY files/install.jl /home/jovyan/install.jl
-
 COPY files/data /home/jovyan/data
 COPY files/notebooks /home/jovyan/notebooks
 

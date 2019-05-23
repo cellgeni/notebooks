@@ -64,7 +64,7 @@ RUN pip install simplegeneric
 RUN update-alternatives --install /etc/alternatives/libblas.so.3-x86_64-linux-gnu libblas /usr/lib/x86_64-linux-gnu/blas/libblas.so.3 5
 
 # RStudio
-ENV RSTUDIO_PKG=rstudio-server-1.1.463-amd64.deb
+ENV RSTUDIO_PKG=rstudio-server-1.2.335-amd64.deb
 RUN wget -q http://download2.rstudio.org/${RSTUDIO_PKG}
 RUN dpkg -i ${RSTUDIO_PKG}
 RUN rm ${RSTUDIO_PKG}

@@ -79,6 +79,14 @@ To copy from the local environment to the farm:
 rsync -avzh <some-file-name> ak27@farm4-login:/nfs/users/nfs_a/ak27/
 ```
 
+### Exporting notebooks
+
+To export a notebook as PDF, install the following pre-requisite software:
+```
+sudo apt update && sudo apt-get install -y texlive-generic-recommended texlive-generic-recommended
+```
+Now you can export a notebook through "File > Export notebook as..." menu.
+
 ### Installing packages (python)
 
 Default conda environments are not persistent across Jupyter sessions - you can install an additional package, but it will not be there next time you start Jupyter. To have a persistent conda environment, you can create one inside your `/home` folder:

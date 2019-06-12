@@ -78,6 +78,13 @@ To copy from the local environment to the farm:
 ```
 rsync -avzh <some-file-name> ak27@farm4-login:/nfs/users/nfs_a/ak27/
 ```
+### Downloading data
+
+By default, JupyterHub does not provide an ability to download folders, but you can create an archive
+```
+tar cvfz <some-archive-name.tar> <target-directory>/
+```
+and download the resulting file with the right click "Download" option.
 
 ### Exporting notebooks
 

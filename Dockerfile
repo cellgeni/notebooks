@@ -73,7 +73,11 @@ ENV PATH="${PATH}:/usr/lib/rstudio-server/bin"
 ENV LD_LIBRARY_PATH="/usr/lib/R/lib:/lib:/usr/lib/x86_64-linux-gnu:/usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/server:/opt/conda/lib/R/lib"
 
 # jupyter-rsession-proxy extension
-RUN pip install git+https://github.com/jupyterhub/jupyter-rsession-proxy
+# RUN pip install git+https://github.com/jupyterhub/jupyter-rsession-proxy
+RUN git clone https://github.com/jupyterhub/nbrsessionproxy /opt/nbrsessionproxy && \
+    pip install -e /opt/nbrsessionproxy && \
+    jupyter serverextension enable --py nbrsessionproxy && \
+    jupyter labextension link /opt/nbrsessionproxy/jupyterlab-rsessionproxy
 
 # R PACKAGES
 

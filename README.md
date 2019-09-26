@@ -36,17 +36,15 @@ helm upgrade jptl jupyterhub/jupyterhub --namespace jptl --version 0.8.0 --value
 
 ## User instructions
 
-1. In your browser go to [https://jupyter.cellgeni.sanger.ac.uk/](https://jupyter.cellgeni.sanger.ac.uk/).
+1. In your browser go to [https://jupyter-large.cellgeni.sanger.ac.uk](https://jupyter-large.cellgeni.sanger.ac.uk).
 2. Use your Github credentials for authentication. It may take some time to load first time.
 3. Now you are ready to run your notebooks!
 
 ### Resources
 
-At the moment by default every user is given 33 Gb of RAM and 2 (guaranteed) to 4 (maximum, if available) CPUs. Default storage volume is 30G.
+At the moment by default every user is given 50GB (guaranteed) to 200GB (maximum, if available) of RAM and 1 (guaranteed) to 16 (maximum, if available) CPUs. Default storage volume is 100G.
 
-If you need more resources, you can go for https://jupyter-large.cellgeni.sanger.ac.uk. A default user there gets 100 Gb of RAM, 4 to 16 CPUs and 100 Gb of storage. Please use this only when this much resources is really required because this might impact the availability of large instances to other users.
-
-For special cases, we have https://jupyter-xl.cellgeni.sanger.ac.uk with 150 Gb of RAM, 150 Gb of storage and 4 to 16 CPU, this one is available upon request. 
+~~For special cases, we have https://jupyter-xl.cellgeni.sanger.ac.uk with 150 Gb of RAM, 150 Gb of storage and 4 to 16 CPU, this one is available upon request. ~~
 
 ### Important notes
 
@@ -56,7 +54,7 @@ For special cases, we have https://jupyter-xl.cellgeni.sanger.ac.uk with 150 Gb 
 4. JupyterHub website is public, so you don't need to turn on VPN to use it. However, it is only available to users who messaged us their Github usernames and have been whitelisted. 
 5. You can switch to a classic Jupyter interface by change the word `lab` in your adress bar to the word `tree`:
 ```
-http://jupyter.cellgeni.sanger.ac.uk/user/\<your-username\>/tree
+https://jupyter-large.cellgeni.sanger.ac.uk/user/<your-username>/tree
 ```
 
 ### Notebook templates
@@ -104,6 +102,10 @@ Default conda environments are not persistent across Jupyter sessions - you can 
 ```
 conda create --name myenv
 source activate myenv
+
+# you must install nb_conda package if you want to use this environment as a Kernel inside your notebook
+conda install nb_conda
+
 # conda install all packages you need
 # ...
 ```
@@ -118,13 +120,19 @@ This will eliminate the need to install repeated packages.
 
 4. Reload the main page. Now you will see your new environment in the Launcher.
 
+#### Using pip
+pip defaults to installing Python packages to a system directory. To make sure that your packages persist they need to be installed in your home directory use the `--user` option to do this.
+```
+pip install --user package_name
+```
+
 ### R and RStudio
 
 R and RStudio are also available on JupyterHub:
 - A new R session can be started from the Launcher
 - To switch to RStudio interface, change the word `lab` in your adress bar to the word `rstudio`:
 ```
-http://jupyter.cellgeni.sanger.ac.uk/user/\<your-username\>/rstudio
+https://jupyter-large.cellgeni.sanger.ac.uk/user/<your-username>/rstudio
 ```
 
 ### Troubleshooting

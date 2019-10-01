@@ -1,4 +1,4 @@
-n order to run monocle3 a few steps must first be followed. Monocle3 requires R version 3.5 or higher, bioconductor 3.5 or higher and monocle3 0.1.0 to run the latest features.
+In order to run monocle3 a few steps must first be followed. Monocle3 requires R version 3.5 or higher, bioconductor 3.5 or higher and monocle3 0.1.0 to run the latest features.
 1) Installing bioconductor:
     if (!requireNamespace("BiocManager", quietly = TRUE))
         install.packages("BiocManager")

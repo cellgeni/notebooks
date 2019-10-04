@@ -92,6 +92,21 @@ sudo apt update && sudo apt-get install -y texlive-generic-recommended texlive-g
 ```
 Now you can export a notebook through "File > Export notebook as..." menu.
 
+### Sharing notebooks
+1. Go to your [API Tokens page](https://jupyter-large.cellgeni.sanger.ac.uk/hub/token) or go to [hub/home](https://jupyter-large.cellgeni.sanger.ac.uk/hub/home) and then click  **"Token"**  on the top menu.
+3. Type in a note like **"Shared with collaborator X"**
+4. Click the orange button **"Request new API token"**
+5. Copy the token that shows up under **"Your new API Token"**. (i.e. `ba5eba11b01dfaceca55e77ecacaca11`)
+6. Go to your jupyter instance, but using the **"tree"** view instead of the "lab" view: 
+`https://jupyter-large.cellgeni.sanger.ac.uk/user/<your username>/tree`
+7. Find your notebook and open it. You should be on a link that looks like: 
+`https://jupyter-large.cellgeni.sanger.ac.uk/user/<your username>/notebooks/some_notebook.ipynb`
+8. Add this to the end of the link: `?token=<your API token>` and copy that link. (i.e.: `?token=ba5eba11b01dfaceca55e77ecacaca11`)
+9. Share what you have copied. It should be something like: 
+  `https://jupyter-large.cellgeni.sanger.ac.uk/user/<your username>/notebooks/some_notebook.ipynb?token=<your API token>`
+10. Onace you have finished the collaboration. Go to your [API Tokens page](https://jupyter-large.cellgeni.sanger.ac.uk/hub/token) and click **"Revoke"** to delete that access token.
+
+
 ### Installing packages (python)
 
 Default conda environments are not persistent across Jupyter sessions - you can install an additional package, but it will not be there next time you start Jupyter. To have a persistent conda environment, you can create one inside your `/home` folder:

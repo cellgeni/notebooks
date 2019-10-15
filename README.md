@@ -44,7 +44,7 @@ helm upgrade jptl jupyterhub/jupyterhub --namespace jptl --version 0.8.0 --value
 
 At the moment by default every user is given 50GB (guaranteed) to 200GB (maximum, if available) of RAM and 1 (guaranteed) to 16 (maximum, if available) CPUs. Default storage volume is 100G.
 
-~~For special cases, we have https://jupyter-xl.cellgeni.sanger.ac.uk with 150 Gb of RAM, 150 Gb of storage and 4 to 16 CPU, this one is available upon request. ~~
+~~For special cases, we have https://jupyter-xl.cellgeni.sanger.ac.uk with 150 Gb of RAM, 150 Gb of storage and 4 to 16 CPU, this one is available upon request.~~
 
 ### Important notes
 
@@ -161,4 +161,4 @@ Sometimes, a server restart might solve an issue. For that, go to `/hub/home` in
   rm -r ./rstudio/sessions/active/<session-name>  # note the name of the last active session and delete it
   ```
   and reload RStudio
-* If RStudio displays an error "Could not start RStudio in time", it might be because you ran out of disk space. Check your disk usage with `du -ha -d 1 ~`, if the home directory size is close to the limit, you need to delete some files or move to/request a JupyterHub with more space.
+* If RStudio displays an error "Could not start RStudio in time", it might be because you ran out of disk space. Check your disk usage with `df -h /home/jovyan/` or `du -ha -d 1 ~`, if the home directory size is close to the limit, you need to delete some files or move to/request a JupyterHub with more space.

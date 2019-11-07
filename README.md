@@ -141,6 +141,24 @@ pip defaults to installing Python packages to a system directory. To make sure t
 pip install --user package_name
 ```
 
+### iRODS
+Open a new terminal on your Jupyter and follow this steps:
+1. Install icommands:
+ ```
+ wget https://files.renci.org/pub/irods/releases/4.1.10/ubuntu14/irods-icommands-4.1.10-ubuntu14-x86_64.deb
+ apt-get install ./irods-icommands-4.1.10-ubuntu14-x86_64.deb
+ ```
+2. Create the .irods folder on your home directory:
+ ```
+ mkdir -p ~/.irods
+ ```
+3. Copy your irods_environment.json from your home directory on the farm to your Jupyter instance:
+ ```
+ scp ak27@farm4-login:/nfs/users/nfs_a/ak27/.irods/irods_environment.json ~/.irods/
+ ```
+4. Run `iinit`. _If asked for password input your iRODS password. Don't know your iRODS password? Go to the farm and type: `head -1 ~/.irods/irods_password`. The output, something like "xUEJAslQ" is your password._
+
+
 ### R and RStudio
 
 R and RStudio are also available on JupyterHub:

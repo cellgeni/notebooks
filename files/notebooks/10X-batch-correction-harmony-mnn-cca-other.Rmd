@@ -136,7 +136,7 @@ Let's run Harmony correction:
 merged <- runPCA(merged, method = "prcomp", exprs_values = "logcounts", ncomponents = 10)
 pca <- merged@reducedDims@listData[["PCA"]]
 batch_vector = merged$dataset
-harmony_emb <- HarmonyMatrix(pca, batch_vector, theta=4)
+harmony_emb <- HarmonyMatrix(data_mat = pca, batch_vector, theta=4, do_pca=FALSE) #NOTE: check what data_mat is by default in your Harmony version and set "do_pca" accordingly
 merged@reducedDims@listData[['harmony_emb']] <- harmony_emb
 ```
 

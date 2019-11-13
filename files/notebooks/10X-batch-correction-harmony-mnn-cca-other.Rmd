@@ -5,7 +5,8 @@ This Jupyter notebook is a template notebook for batch correction of 10X data us
 Some of the batch correction tools correct the expression matrix, however some of the tools only perform correction in the low dimensional space:
 * Harmony --> corrects the PCA graph
 * mnnCorrect --> corrects the expression matrix
-* multiCCA --> corrects the CC vectors (similar to PCA graph correction)
+* multiCCA (Seurat_v2) --> corrects the CC vectors (similar to PCA graph correction)
+* Anchors (Seurat_v3) --> corrects the expression matrix
 * ComBat --> corrects the expression matrix
 * Limma --> corrects the expression matrix
 
@@ -114,7 +115,7 @@ cell_data <- data.frame("dataset" = dataset_labels,
 
 merged <- SingleCellExperiment(assay = list(
                                  counts = combined_counts,
-                                 logcounts = combined_logcounts),
+                                 logcounts = as(combined_logcounts, "dgCMatrix")),
                                colData = cell_data,
                                rowData = list("ID" = common_genes)
 )
@@ -136,7 +137,7 @@ Let's run Harmony correction:
 merged <- runPCA(merged, method = "prcomp", exprs_values = "logcounts", ncomponents = 10)
 pca <- merged@reducedDims@listData[["PCA"]]
 batch_vector = merged$dataset
-harmony_emb <- HarmonyMatrix(data_mat = pca, batch_vector, theta=4, do_pca=FALSE) #NOTE: check what data_mat is by default in your Harmony version and set "do_pca" accordingly
+harmony_emb <- HarmonyMatrix(pca, batch_vector, theta=4, do_pca = F, verbose = F)
 merged@reducedDims@listData[['harmony_emb']] <- harmony_emb
 ```
 
@@ -179,7 +180,7 @@ plotPCA(merged, run_args=list(exprs_values = "logcounts"), colour_by= "dataset")
 plotPCA(merged, run_args=list(exprs_values = "mnn"), colour_by= "dataset")
 ```
 
-### multiCCA (Seurat)
+### multiCCA (Seurat_v2)
 
 Seurat's multiCCA requires the objects to be corrected, to be given individually, and as Seurat objects. This is why we now convert them.
 ```{r}
@@ -253,7 +254,67 @@ DimPlot(object = merged_cca, reduction.use = "cca", group.by = "dataset", pt.siz
 DimPlot(object = merged_cca, reduction.use = "cca.aligned", group.by = "dataset", pt.size = 0.5) 
 ```
 
+### Anchors (Seurat_v3)
+Convert object into class Seurat.
+```{r}
+merged_seurat <- as.Seurat(merged, counts = "logcounts", data = "logcounts")
+```
+
+```{r split object into batches}
+len <- length(names(table(merged_seurat$dataset)))
+batch_list <- lapply(1:len, function(x) {abc <- merged_seurat[, merged_seurat$dataset == names(table(merged_seurat$dataset))[x]]})
+```
+
+Downstream functions require data to be Normalized and Variable Features to be present. 
+If one is already working with high variable features, or simply does not want to subset the dataset, set *nfeatures* to *nrow(merged)*. 2000 is the default value.
+```{r Normalize and find HVG}
+for (i in 1:length(batch_list)) {
+  batch_list[[i]] <- NormalizeData(object = batch_list[[i]], verbose = FALSE)
+  batch_list[[i]] <- FindVariableFeatures(object = batch_list[[i]],
+                                          selection.method = "dispersion", nfeatures = 2000, verbose = FALSE)
+}
+```
+
+```{r Find integration anchors and integrate}
+anchors <- FindIntegrationAnchors(object.list = batch_list, dims = 1:30)
+integrated <- IntegrateData(anchorset = anchors, dims = 1:30)
+```
+
+Calculate UMAP for the uncorrected counts (integrated@assays[["RNA"]]) and for the batch corrected counts (integrated@assays[["integrated"]]). 
+*Note* When running PCA as a previous step to compute UMAP, Seurat aks for features to compute PCA on if **FindVariableFeatures** hasn't been ran, which is the case for the RNA assay. Again, we can set *nfeatures* to *nrow(integrated)* to account for all the genes. 
+```{r UMAP}
+for (i in 1:length(integrated@assays)){
+assay_name <- names(integrated@assays)[i]
+print(assay_name)
+DefaultAssay(object = integrated) <- assay_name
+
+
+integrated <- ScaleData(object = integrated, verbose = FALSE)
+integrated <- RunPCA(object = integrated,  npcs = 30,
+                     reduction.name = paste0("pca_", assay_name),  features = rownames(integrated), verbose = FALSE)
+integrated <- RunUMAP(integrated, reduction = paste0("pca_", assay_name), dims = 1:30, 
+                      reduction.name = paste0("umap_", assay_name), verbose = FALSE)
+}
+```
+Probable warning: "Cannot add objects with duplicate keys (offending key: PC_)". This does not affect data.
+
+
+```{r visualize correction}
+library(ggplot2)
+#before correction
+DimPlot(object = integrated, reduction = "umap_RNA", group.by = "dataset")
+#Seurat_v3 correction
+DimPlot(object = integrated, reduction = "umap_integrated", group.by = "dataset")
+```
+
 ### ComBat
+*Note*: in the QC - Merge datasets step we have removed those genes with complete 0 values. This is to avoid  genes with 0 variance, which cause error when running ComBat. In case such gene removal step has been skipped previously please run:
+```{r pre ComBat}
+#merged <- merged[rowSums(logcounts(merged)) > 0, ]
+#or
+#merged <- merged[rowVars(logcounts(merged)) > 0, ]
+```
+
 ```{r ComBat models}
 mod_data <- as.data.frame(t(as.matrix(logcounts(merged))))
 # Basic batch removal
@@ -271,7 +332,9 @@ assay(merged, "combat") <- ComBat(
 ```
 
 ```{r visualize ComBat}
+#before correction
 plotPCA(merged, run_args=list(exprs_values = "logcounts"), colour_by = "dataset")
+#ComBat correction
 plotPCA(merged, run_args=list(exprs_values = "combat"), colour_by = "dataset")
 ```
 
@@ -283,7 +346,9 @@ assay(merged, "limma") <- removeBatchEffect(x = assay(merged, "logcounts"), batc
 ```
 
 ```{r visualize Limma}
+#before correction
 plotPCA(merged, run_args=list(exprs_values = "logcounts"), colour_by = "dataset")
+#limma correction
 plotPCA(merged, run_args=list(exprs_values = "limma"), colour_by = "dataset")
 ```
 

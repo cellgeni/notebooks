@@ -207,8 +207,6 @@ COPY files/notebooks /home/jovyan/notebooks
 
 # copy mount script
 COPY mount-farm.sh /
-RUN sudo chmod +x /mount-farm.sh
-RUN sudo mv /mount-farm.sh /usr/local/bin/mount-farm
 
 # copy poststart script
 COPY poststart.sh /

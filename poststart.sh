@@ -18,4 +18,7 @@ sudo mkdir -p /nfs
 sudo mkdir -p /lustre
 sudo mkdir -p /warehouse
 
+sudo chmod +x /mount-farm.sh
+sudo cp /mount-farm.sh /usr/local/bin/mount-farm
+
 export USER=jovyan

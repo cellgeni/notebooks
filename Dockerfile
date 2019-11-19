@@ -81,8 +81,8 @@ RUN rm -f shiny-server-latest.deb
 
 # jupyter-server-proxy extension
 RUN pip install jupyter-server-proxy
-# This version of jupyter-rsession-proxy fallsback to rserver 
-RUN pip install git+https://github.com/ausecocloud/jupyter-rsession-proxy.git
+# use yuvipanda verion of jupyter-rsession-procy (nbrsessionproxy)
+RUN pip install https://github.com/yuvipanda/nbrsessionproxy/archive/rserver-again.zip
 RUN jupyter serverextension enable --sys-prefix jupyter_server_proxy
 
 # R PACKAGES
@@ -204,6 +204,11 @@ RUN echo "jovyan ALL= (ALL) NOPASSWD: ALL" >> /etc/sudoers.d/jovyan
 # copy template notebooks to the image
 COPY files/data /home/jovyan/data
 COPY files/notebooks /home/jovyan/notebooks
+
+# copy mount script
+COPY mount-farm.sh /
+RUN sudo chmod +x /mount-farm.sh
+RUN sudo mv /mount-farm.sh /usr/local/bin/mount-farm
 
 # copy poststart script
 COPY poststart.sh /

@@ -14,4 +14,8 @@ fi
 Rscript -e 'dir.create(path = Sys.getenv("R_LIBS_USER"), showWarnings = FALSE, recursive = TRUE)'
 Rscript -e '.libPaths( c( Sys.getenv("R_LIBS_USER"), .libPaths() ) )'
 
+sudo mkdir -p /nfs
+sudo mkdir -p /lustre
+sudo mkdir -p /warehouse
+
 export USER=jovyan

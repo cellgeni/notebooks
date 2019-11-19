@@ -56,6 +56,7 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
     libpng-dev \
     libpixman-1-0 \ 
     fuse libfuse2 sshfs \
+    libxkbcommon-x11-0 \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -65,16 +66,24 @@ RUN pip install simplegeneric
 RUN update-alternatives --install /etc/alternatives/libblas.so.3-x86_64-linux-gnu libblas /usr/lib/x86_64-linux-gnu/blas/libblas.so.3 5
 
 # RStudio
-ENV RSTUDIO_PKG=rstudio-server-1.1.463-amd64.deb
-RUN wget -q http://download2.rstudio.org/${RSTUDIO_PKG}
+ENV RSTUDIO_PKG=rstudio-server-1.2.5019-amd64.deb
+RUN wget -q https://download2.rstudio.org/server/bionic/amd64/${RSTUDIO_PKG}
 RUN dpkg -i ${RSTUDIO_PKG}
 RUN rm ${RSTUDIO_PKG}
 # The desktop package uses /usr/lib/rstudio/bin
 ENV PATH="${PATH}:/usr/lib/rstudio-server/bin"
 ENV LD_LIBRARY_PATH="/usr/lib/R/lib:/lib:/usr/lib/x86_64-linux-gnu:/usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/server:/opt/conda/lib/R/lib"
 
-# jupyter-rsession-proxy extension
-RUN pip install git+https://github.com/jupyterhub/jupyter-rsession-proxy
+# Shine Server
+RUN wget -q "https://download3.rstudio.org/ubuntu-14.04/x86_64/shiny-server-1.5.9.923-amd64.deb" -O shiny-server-latest.deb
+RUN dpkg -i shiny-server-latest.deb
+RUN rm -f shiny-server-latest.deb
+
+# jupyter-server-proxy extension
+RUN pip install jupyter-server-proxy
+# This version of jupyter-rsession-proxy fallsback to rserver 
+RUN pip install git+https://github.com/ausecocloud/jupyter-rsession-proxy.git
+RUN jupyter serverextension enable --sys-prefix jupyter_server_proxy
 
 # R PACKAGES
 

@@ -158,6 +158,12 @@ Open a new terminal on your Jupyter and follow this steps:
  ```
 4. Run `iinit`. _If asked for password input your iRODS password. Don't know your iRODS password? Go to the farm and type: `head -1 ~/.irods/irods_password`. The output, something like "xUEJAslQ" is your password._
 
+### SSHFS (mounting the farm on jupyter)
+
+To mount the farm's base paths (`/nfs`, `/lustre` and `/warehouse`) on your jupyter instance:
+1. Open a new terminal on your Jupyter.
+2. Type `mount-farm`, then press Enter.
+3. When prompted for your username and password input them.
 
 ### R and RStudio
 

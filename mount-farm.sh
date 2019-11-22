@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+FARM_LOGIN=farm5-login
+
 MOUNTED_DIRS=$(mount | grep sshfs | awk '{print $3}' | grep -E "^(/nfs|/lustre|/warehouse)$")
 if [[ ! -z ${MOUNTED_DIRS} ]];
 then
@@ -16,5 +18,5 @@ for MOUNT_POINT in /nfs /lustre /warehouse; do
     if [ ! -d "$MOUNT_POINT" ]; then
         sudo mkdir -p ${MOUNT_POINT}
     fi
-    echo "${SANGER_PASSWORD}" | sudo sshfs -o password_stdin,allow_other,auto_unmount,no_remote_lock,StrictHostKeyChecking=no ${SANGER_USER}@farm4-login:${MOUNT_POINT} ${MOUNT_POINT}
+    echo "${SANGER_PASSWORD}" | sudo sshfs -o password_stdin,allow_other,auto_unmount,no_remote_lock,StrictHostKeyChecking=no ${SANGER_USER}@${FARM_LOGIN}:${MOUNT_POINT} ${MOUNT_POINT}
 done 

@@ -92,6 +92,13 @@ sudo apt update && sudo apt-get install -y texlive-generic-recommended texlive-g
 ```
 Now you can export a notebook through "File > Export notebook as..." menu.
 
+#### Knit to PDF
+
+To export a Rnotebook as PDF, install the following pre-requisite software (the easiest way is to install the whole package, the downside is that it is 4.5G):
+```
+sudo apt update && sudo apt-get install -y texlive-full
+```
+
 ### Sharing notebooks
 1. Go to your [API Tokens page](https://jupyter-large.cellgeni.sanger.ac.uk/hub/token) or go to [hub/home](https://jupyter-large.cellgeni.sanger.ac.uk/hub/home) and then click  **"Token"**  on the top menu.
 3. Type in a note like **"Shared with collaborator X"**

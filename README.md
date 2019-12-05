@@ -94,7 +94,12 @@ Now you can export a notebook through "File > Export notebook as..." menu.
 
 #### Knit to PDF
 
-To export a Rnotebook as PDF, install the following pre-requisite software (the easiest way is to install the whole package, the downside is that it is 4.5G):
+To export a Rnotebook as PDF, install the following pre-requisite software:
+```
+wget -qO- "https://yihui.org/gh/tinytex/tools/install-unx.sh" | sh
+```
+
+If that it is not enough, the easiest way is to install the whole texlive package, the downside is that it is 4.5G:
 ```
 sudo apt update && sudo apt-get install -y texlive-full
 ```

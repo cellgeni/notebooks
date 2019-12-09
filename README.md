@@ -177,6 +177,18 @@ To mount the farm's base paths (`/nfs`, `/lustre` and `/warehouse`) on your jupy
 2. Type `mount-farm`, then press Enter.
 3. When prompted for your username and password input them.
 
+The three folders will be mounted on the root folder of your instance. 
+Try opening a new terminal and change directory to your farm home `cd /nfs/users/nfs_u/usr99` or your team's lustre `cd /lustre/scratch11X/team999` and then type `ls` to see the files. You can use the same paths in your notebooks.
+
+**You will not see these folders in Jupyter's File Browser** because it only shows `/home/jovyan`. If you really want to see them on your File Browser you need to create symlinks from the mounted folders to your home folder.
+For example:
+```
+ln -s /nfs /home/jovyan/nfs
+ln -s /warehouse /home/jovyan/warehouse
+ln -s /lustre /home/jovyan/lustre
+```
+:warning: _Mounting folders with many files/folders inside them may affect Jupyter. So we redommend to only link particular folders and not the whole mounting point._
+
 ### R and RStudio
 
 R and RStudio are also available on JupyterHub:
@@ -188,7 +200,10 @@ https://jupyter-large.cellgeni.sanger.ac.uk/user/<your-username>/rstudio
 
 ### Troubleshooting
 
-Sometimes, a server restart might solve an issue. For that, go to `/hub/home` inside JupyterHub, hit "Stop my server" and reload the page.
+Sometimes, a server restart might solve an issue. For that:
+1. Go to the menu "File" > "Hub Control Panel" or browse to `https://jupyter-large.cellgeni.sanger.ac.uk/hub/home`
+2. Hit "Stop my server"
+3. Reload the page.
 
 * If RStudio displays "[Errno 111] Connection refused", try restarting the server.
 * If RStudio displays an error "Rsession did not start in time", go to the `lab` interface, start terminal, and delete the last R session:

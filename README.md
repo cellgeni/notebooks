@@ -36,7 +36,7 @@ helm upgrade jptl jupyterhub/jupyterhub --namespace jptl --version 0.8.0 --value
 
 ## User instructions
 
-1. In your browser go to [https://jupyter-large.cellgeni.sanger.ac.uk](https://jupyter-large.cellgeni.sanger.ac.uk).
+1. In your browser go to [https://jupyter.cellgeni.sanger.ac.uk](https://jupyter.cellgeni.sanger.ac.uk).
 2. Use your Github credentials for authentication. It may take some time to load first time.
 3. Now you are ready to run your notebooks!
 
@@ -54,7 +54,7 @@ At the moment by default every user is given 50GB (guaranteed) to 200GB (maximum
 4. JupyterHub website is public, so you don't need to turn on VPN to use it. However, it is only available to users who messaged us their Github usernames and have been whitelisted. 
 5. You can switch to a classic Jupyter interface by change the word `lab` in your adress bar to the word `tree`:
 ```
-https://jupyter-large.cellgeni.sanger.ac.uk/user/<your-username>/tree
+https://jupyter.cellgeni.sanger.ac.uk/user/<your-username>/tree
 ```
 
 ### Notebook templates
@@ -105,18 +105,18 @@ sudo apt update && sudo apt-get install -y texlive-full
 ```
 
 ### Sharing notebooks
-1. Go to your [API Tokens page](https://jupyter-large.cellgeni.sanger.ac.uk/hub/token) or go to [hub/home](https://jupyter-large.cellgeni.sanger.ac.uk/hub/home) and then click  **"Token"**  on the top menu.
+1. Go to your [API Tokens page](https://jupyter.cellgeni.sanger.ac.uk/hub/token) or go to [hub/home](https://jupyter.cellgeni.sanger.ac.uk/hub/home) and then click  **"Token"**  on the top menu.
 3. Type in a note like **"Shared with collaborator X"**
 4. Click the orange button **"Request new API token"**
 5. Copy the token that shows up under **"Your new API Token"**. (i.e. `ba5eba11b01dfaceca55e77ecacaca11`)
 6. Go to your jupyter instance, but using the **"tree"** view instead of the "lab" view: 
-`https://jupyter-large.cellgeni.sanger.ac.uk/user/<your username>/tree`
+`https://jupyter.cellgeni.sanger.ac.uk/user/<your username>/tree`
 7. Find your notebook and open it. You should be on a link that looks like: 
-`https://jupyter-large.cellgeni.sanger.ac.uk/user/<your username>/notebooks/some_notebook.ipynb`
+`https://jupyter.cellgeni.sanger.ac.uk/user/<your username>/notebooks/some_notebook.ipynb`
 8. Add this to the end of the link: `?token=<your API token>` and copy that link. (i.e.: `?token=ba5eba11b01dfaceca55e77ecacaca11`)
 9. Share what you have copied. It should be something like: 
-  `https://jupyter-large.cellgeni.sanger.ac.uk/user/<your username>/notebooks/some_notebook.ipynb?token=<your API token>`
-10. Onace you have finished the collaboration. Go to your [API Tokens page](https://jupyter-large.cellgeni.sanger.ac.uk/hub/token) and click **"Revoke"** to delete that access token.
+  `https://jupyter.cellgeni.sanger.ac.uk/user/<your username>/notebooks/some_notebook.ipynb?token=<your API token>`
+10. Onace you have finished the collaboration. Go to your [API Tokens page](https://jupyter.cellgeni.sanger.ac.uk/hub/token) and click **"Revoke"** to delete that access token.
 
 
 ### Installing packages (python)
@@ -195,13 +195,13 @@ R and RStudio are also available on JupyterHub:
 - A new R session can be started from the Launcher
 - To switch to RStudio interface, change the word `lab` in your adress bar to the word `rstudio`:
 ```
-https://jupyter-large.cellgeni.sanger.ac.uk/user/<your-username>/rstudio
+https://jupyter.cellgeni.sanger.ac.uk/user/<your-username>/rstudio
 ```
 
 ### Troubleshooting
 
 Sometimes, a server restart might solve an issue. For that:
-1. Go to the menu "File" > "Hub Control Panel" or browse to `https://jupyter-large.cellgeni.sanger.ac.uk/hub/home`
+1. Go to the menu "File" > "Hub Control Panel" or browse to `https://jupyter.cellgeni.sanger.ac.uk/hub/home`
 2. Hit "Stop my server"
 3. Reload the page.
 

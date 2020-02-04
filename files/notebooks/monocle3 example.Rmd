@@ -7,17 +7,19 @@ A few bioconductor dependencies are not automatically installed so you should in
 2) Installing bioconductor dependencies:
     BiocManager::install(c('BiocGenerics', 'DelayedArray', 'DelayedMatrixStats',
                        'limma', 'S4Vectors', 'SingleCellExperiment',
-                       'SummarizedExperiment'))
+                       'SummarizedExperiment', 'batchelor'))
 In order to install monocle3 a few preparations must be made. First devtools must be installed into your R environment via the R console.
 3) Installing devtools:
     install.packages('devtools')
 Next your must install libudunits2-dev in your terminal. 
 4) Installing libudunits2-dev:
+    sudo apt-get update    
     sudo apt-get install libudunits2-dev
 Finally libgdal-dev must also be installed on your terminal.
 5) Installing libgdal-dev:
-    sudo apt-get install libgdal-dev
-Now we can finally install monocle3.
+    sudo apt-get update    
+    sudo apt-get install --fix-missing libgdal-dev
+Now we can finally installmonocle3.
 6)Installing monocle3:
     devtools::install_github('cole-trapnell-lab/monocle3')
 Now to test that monocle3 has been installed correctly, enter library(monocle3) into your R console to ensure correct downlaod.

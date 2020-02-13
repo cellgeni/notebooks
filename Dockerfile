@@ -74,7 +74,7 @@ RUN rm ${RSTUDIO_PKG}
 ENV PATH="${PATH}:/usr/lib/rstudio-server/bin"
 ENV LD_LIBRARY_PATH="/usr/lib/R/lib:/lib:/usr/lib/x86_64-linux-gnu:/usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/server:/opt/conda/lib/R/lib"
 
-# Shine Server
+# Shiny Server
 RUN wget -q "https://download3.rstudio.org/ubuntu-14.04/x86_64/shiny-server-1.5.9.923-amd64.deb" -O shiny-server-latest.deb
 RUN dpkg -i shiny-server-latest.deb
 RUN rm -f shiny-server-latest.deb
@@ -194,6 +194,10 @@ RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 RUN add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
 RUN apt update
 RUN apt install -y docker-ce
+# Fix docker in sanger internal network
+# https://ssg-confluence.internal.sanger.ac.uk/display/OPENSTACK/Commonly+encountered+errors
+RUN mkdir -p /etc/default/
+RUN echo "DOCKER_OPTS=\"--dns 172.18.255.1 --dns 172.18.255.2 --bip=192.168.3.3/24 --mtu=1380\"" >> /etc/default/docker
 
 # move kernelspec out of home
 RUN mv $HOME/.local/share/jupyter/kernels/julia* $CONDA_DIR/share/jupyter/kernels/ && \

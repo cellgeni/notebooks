@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-FARM_LOGIN=farm5-login
+FARM_LOGIN=farm5-login.internal.sanger.ac.uk
 
 MOUNTED_DIRS=$(mount | grep sshfs | awk '{print $3}' | grep -E "^(/nfs|/lustre|/warehouse)$")
 if [[ ! -z ${MOUNTED_DIRS} ]];

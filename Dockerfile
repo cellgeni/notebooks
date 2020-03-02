@@ -216,7 +216,8 @@ COPY files/data /home/jovyan/data
 COPY files/notebooks /home/jovyan/notebooks
 
 # copy mount script
-COPY mount-farm.sh /
+COPY mount-farm /usr/local/bin/mount-farm
+RUN chmod +x /usr/local/bin/mount-farm
 
 # copy poststart script
 COPY poststart.sh /

@@ -19,10 +19,6 @@ sudo mkdir -p /nfs
 sudo mkdir -p /lustre
 sudo mkdir -p /warehouse
 
-# copy mount-farm so its avaiable on the user's path
-sudo chmod +x /mount-farm.sh
-sudo cp /mount-farm.sh /usr/local/bin/mount-farm
-
 # start docker service
 sudo service docker start
 

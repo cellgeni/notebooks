@@ -153,7 +153,11 @@ conda create --clone old_name --name new_name
 
 This will eliminate the need to install repeated packages.
 
-
+#### Re-adding kernels
+The kernel list is located outside your home directory, so it can be reseted sometimes.If that happens, run this one-line command from your terminal to add **every conda environment** on your profile to the kernel list.
+```bash
+pip install -U ipykernel; ENVS=$(conda info --envs | grep '^\w' | cut -d' ' -f1); for env in $ENVS; do source activate $env; python -m ipykernel install --user --name $env; echo "$env"; conda deactivate; done
+```
 
 #### Using pip
 pip defaults to installing Python packages to a system directory. To make sure that your packages persist they need to be installed in your home directory use the `--user` option to do this.

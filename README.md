@@ -124,20 +124,28 @@ sudo apt update && sudo apt-get install -y texlive-full
 Default conda environments are not persistent across Jupyter sessions - you can install an additional package, but it will not be there next time you start Jupyter. To have a persistent conda environment, you can create one inside your `/home` folder:
 
 1. Open a new terminal (click on the `Terminal` icon in the Launcher)
-2. Run the following commands (replace `myenv` with your environment name):
+
+2. Install `ipykernel`
+```
+pip install ipykernel --user
+```
+
+3. Run the following commands (replace `myenv` with your environment name):
 
 ```
 conda create --name myenv
 source activate myenv
 
-# you must install nb_conda package if you want to use this environment as a Kernel inside your notebook
-conda install nb_conda
+# you must install ipython kernel package if you want to use this environment as a Kernel inside your notebook
+python -m ipykernel install --user --name myenv --display-name "Python (MyEnv)"
 
 # conda install all packages you need
 # ...
 ```
+4. Reload the main page. Now you will see your new environment in the Launcher. If you don't see it at first, try restarting your instance.
 
-(3). Instead of creating a new environment, you can also clone an existing one, e.g.:
+#### Alternative
+Instead of creating a new environment, you can also clone an existing one, e.g.:
 
 ```
 conda create --clone old_name --name new_name
@@ -145,7 +153,7 @@ conda create --clone old_name --name new_name
 
 This will eliminate the need to install repeated packages.
 
-4. Reload the main page. Now you will see your new environment in the Launcher.
+
 
 #### Using pip
 pip defaults to installing Python packages to a system directory. To make sure that your packages persist they need to be installed in your home directory use the `--user` option to do this.

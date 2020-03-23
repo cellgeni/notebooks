@@ -18,21 +18,17 @@ This Docker image is used as default for every user of Cellgeni JupyterHub insta
 git clone  https://gitlab.internal.sanger.ac.uk/cellgeni/kubespray/
 cd kubespray/sanger/sites
 ```
-2. Add the new user's Github username to `auth.whitelist.users` or change Docker image at `singleuser.image.tag` in `jupyter-github-auth.yaml` (`jupyter-large-config.yaml` for jupyter-large)
+2. Add the new user's Github username to `auth.whitelist.users` or change Docker image at `singleuser.image.tag` in `jupyter-large-config.yaml`.
 
 3. Commit and push your changes so that your colleagues do not override your changes in the following upgrades
 ```
-git add jupyter-github-auth.yaml jupyter-large-config.yaml && git commit -m "Add new users" && git push
+git add jupyter-large-config.yaml && git commit -m "Add new users" && git push
 ```
-3. Upgrade Jupyter with 
-```
-helm upgrade jpt jupyterhub/jupyterhub --namespace jpt --version 0.8.0 --values jupyter-github-auth.yaml
-```
-or jupyter-large with 
+3. Upgrade Jupyter with  
 ```
 helm upgrade jptl jupyterhub/jupyterhub --namespace jptl --version 0.8.0 --values jupyter-large-config.yaml
 ```
-4. Wait until the hub's state switches into `Running`. Monitor through `kubectl get pods -n jpt` or `kubectl get pods -n jptl`.
+4. Wait until the hub's state switches into `Running`. Monitor through `kubectl get pods -n jptl`.
 
 ## User instructions
 

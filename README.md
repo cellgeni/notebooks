@@ -221,3 +221,4 @@ Sometimes, a server restart might solve an issue. For that:
   ```
   and reload RStudio
 * If RStudio displays an error "Could not start RStudio in time", it might be because you ran out of disk space. Check your disk usage with `df -h /home/jovyan/` or `du -ha -d 1 ~`, if the home directory size is close to the limit, you need to delete some files or move to/request a JupyterHub with more space.
+* Find large files in your instance. Check files larger than 1GB using `find /home/jovyan -size +1G -ls`. 

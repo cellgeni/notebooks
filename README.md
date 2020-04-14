@@ -48,6 +48,7 @@ At the moment by default every user is given 50GB (guaranteed) to 200GB (maximum
 2. Do not modify files from `data` and `notebooks` folder directly - make a copy, put it in a separate folder and work with a copy. Changes to the original files in the `data` and `notebooks` folders will not survive the server updates.
 3. Please read the instructions on package installations below.
 4. JupyterHub website is public, so you don't need to turn on VPN to use it. However, it is only available to users who messaged us their Github usernames and have been whitelisted. 
+5. **Keep your notebooks light**. Notebooks over 100MB will give you unexpected errors.
 5. You can switch to a classic Jupyter interface by change the word `lab` in your adress bar to the word `tree`:
 ```
 https://jupyter.cellgeni.sanger.ac.uk/user/<your-username>/tree

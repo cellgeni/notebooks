@@ -162,6 +162,13 @@ pip defaults to installing Python packages to a system directory. To make sure t
 pip install --user package_name
 ```
 
+### Add R Kernel
+If you want to run R code straight from JupyterLab without using RStudio you need to install the iRkernel package. Install the package and the spec:
+```R
+install.packages('IRkernel')
+IRkernel::installspec() 
+```
+
 ### iRODS
 Open a new terminal on your Jupyter and follow this steps:
 1. Install icommands:

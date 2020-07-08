@@ -49,7 +49,7 @@ At the moment by default every user is given 50GB (guaranteed) to 200GB (maximum
 3. Please read the instructions on package installations below.
 4. JupyterHub website is public, so you don't need to turn on VPN to use it. However, it is only available to users who messaged us their Github usernames and have been whitelisted. 
 5. **Keep your notebooks light**. Notebooks over 100MB will give you unexpected errors.
-5. You can switch to a classic Jupyter interface by change the word `lab` in your adress bar to the word `tree`:
+5. You can switch to a classic Jupyter interface by change the word `lab` in your address bar to the word `tree`:
 ```
 https://jupyter.cellgeni.sanger.ac.uk/user/<your-username>/tree
 ```
@@ -151,7 +151,7 @@ conda create --clone old_name --name new_name
 This will eliminate the need to install repeated packages.
 
 #### Re-adding kernels
-The kernel list is located outside your home directory, so it can be reseted sometimes.If that happens, run this one-line command from your terminal to add **every conda environment** on your profile to the kernel list.
+The kernel list is located outside your home directory, so it can be reseted sometimes. If that happens, run this one-line command from your terminal to add **every conda environment** on your profile to the kernel list.
 ```bash
 pip install -U ipykernel; ENVS=$(conda info --envs | grep '^\w' | cut -d' ' -f1); for env in $ENVS; do source activate $env; python -m ipykernel install --user --name $env; echo "$env"; conda deactivate; done
 ```
@@ -209,7 +209,7 @@ ln -s /lustre /home/jovyan/lustre
 
 R and RStudio are also available on JupyterHub:
 - A new R session can be started from the Launcher
-- To switch to RStudio interface, change the word `lab` in your adress bar to the word `rstudio`:
+- To switch to RStudio interface, change the word `lab` in your address bar to the word `rstudio`:
 ```
 https://jupyter.cellgeni.sanger.ac.uk/user/<your-username>/rstudio
 ```

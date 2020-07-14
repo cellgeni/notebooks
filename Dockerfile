@@ -4,7 +4,6 @@ FROM jupyter/base-notebook
 USER root
 
 # GENERAL PACKAGES
-
 RUN apt-get update && apt-get install -yq --no-install-recommends \
     python3-software-properties \
     software-properties-common \
@@ -57,52 +56,47 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
     libpixman-1-0 \ 
     fuse libfuse2 sshfs \
     libxkbcommon-x11-0 \
+    tmux \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Select the right versio of libblas to be used
-# there was a problem running R in python and vice versa
-RUN pip install simplegeneric
-RUN update-alternatives --install /etc/alternatives/libblas.so.3-x86_64-linux-gnu libblas /usr/lib/x86_64-linux-gnu/blas/libblas.so.3 5
+# Select the right versio of libblas to be used. 
+# There was a problem running R in python and vice versa
+RUN pip install --no-cache-dir simplegeneric &&\
+    update-alternatives --install /etc/alternatives/libblas.so.3-x86_64-linux-gnu libblas /usr/lib/x86_64-linux-gnu/blas/libblas.so.3 5
 
-# RStudio
+
+# Install RStudio
 ENV RSTUDIO_PKG=rstudio-server-1.2.5019-amd64.deb
-RUN wget -q https://download2.rstudio.org/server/bionic/amd64/${RSTUDIO_PKG}
-RUN dpkg -i ${RSTUDIO_PKG}
-RUN rm ${RSTUDIO_PKG}
-# The desktop package uses /usr/lib/rstudio/bin
+RUN wget -q https://download2.rstudio.org/server/bionic/amd64/${RSTUDIO_PKG} && \
+    dpkg -i ${RSTUDIO_PKG} && \
+    rm ${RSTUDIO_PKG}
+# Add RStudio to PATH and R and java and conda to LD_LIBRARY_PATH
 ENV PATH="${PATH}:/usr/lib/rstudio-server/bin"
-ENV LD_LIBRARY_PATH="/usr/lib/R/lib:/lib:/usr/lib/x86_64-linux-gnu:/usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/server:/opt/conda/lib/R/lib"
+ENV LD_LIBRARY_PATH="/usr/lib/R/lib:/lib:/usr/lib/x86_64-linux-gnu:/usr/lib/jvm/default-java/lib/server:/opt/conda/lib/R/lib"
 
-# Shiny Server
-RUN wget -q "https://download3.rstudio.org/ubuntu-14.04/x86_64/shiny-server-1.5.9.923-amd64.deb" -O shiny-server-latest.deb
-RUN dpkg -i shiny-server-latest.deb
-RUN rm -f shiny-server-latest.deb
+# Install jupyter-server-proxy extension and jupyter-rsession-proxy (nbrsessionproxy from yuvipanda)
+RUN pip install --no-cache-dir \
+        jupyter-server-proxy \
+        https://github.com/yuvipanda/nbrsessionproxy/archive/rserver-again.zip && \
+    jupyter serverextension enable --sys-prefix jupyter_server_proxy
 
-# jupyter-server-proxy extension
-RUN pip install jupyter-server-proxy
-# use yuvipanda verion of jupyter-rsession-procy (nbrsessionproxy)
-RUN pip install https://github.com/yuvipanda/nbrsessionproxy/archive/rserver-again.zip
-RUN jupyter serverextension enable --sys-prefix jupyter_server_proxy
-
-# R PACKAGES
 
 # R
-# https://askubuntu.com/questions/610449/w-gpg-error-the-following-signatures-couldnt-be-verified-because-the-public-k
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
 # https://cran.r-project.org/bin/linux/ubuntu/README.html
-RUN echo "deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran35/" | sudo tee -a /etc/apt/sources.list
-# https://launchpad.net/~marutter/+archive/ubuntu/c2d4u3.5
-RUN add-apt-repository ppa:marutter/c2d4u3.5
-# Install CRAN binaries from ubuntu
-RUN apt-get update && apt-get install -yq --no-install-recommends \
-    r-base \
-    # r-cran-httpuv \
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9 && \
+    echo "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -c | awk '{print $2}')-cran40/" | sudo tee -a /etc/apt/sources.list && \
+    add-apt-repository ppa:c2d4u.team/c2d4u4.0+ && \
+    apt-get update && apt-get install -yq --no-install-recommends \
+        r-base \
+        r-base-dev \
     && apt-get clean \
     && rm -rf /tmp/downloaded_packages/ /tmp/*.rds \
     rm -rf /var/lib/apt/lists/*
-# Install hdf5r for Seurat
-RUN Rscript -e 'install.packages("hdf5r",configure.args="--with-hdf5=/usr/bin/h5cc")'
+# Install hdf5r for Seurat and IRkernel to run R code in jupyetr lab
+RUN Rscript -e "install.packages('hdf5r',configure.args='--with-hdf5=/usr/bin/h5cc')" && \
+    Rscript -e "install.packages('IRkernel')"
+
 # Install other CRAN
 # RUN Rscript -e 'install.packages(c("devtools", "ggplot2", "BiocManager", "Seurat", "rJava"))'
 # Install Bioconductor packages
@@ -116,50 +110,57 @@ RUN Rscript -e 'install.packages("hdf5r",configure.args="--with-hdf5=/usr/bin/h5
 # RUN Rscript -e 'withr::with_libpaths(new = "/usr/lib/R/site-library/", devtools::install_github(c("immunogenomics/harmony", "LTLA/beachmat", "MarioniLab/DropletUtils")))'
 # create local R library
 
-# PYTHON PACKAGES
 
-# Install scanpy and other python packages
-RUN pip install scanpy python-igraph louvain bbknn rpy2 tzlocal scvelo leidenalg
-# Try to fix rpy2 problems
-# https://stackoverflow.com/questions/54904223/importing-rds-files-in-python-to-be-read-as-a-dataframe
-RUN pip install --upgrade rpy2 pandas
-# scanorama
-RUN git clone https://github.com/brianhie/scanorama.git
-RUN cd scanorama/ && python setup.py install
-# necessary for creating user environments 
-RUN conda install --quiet --yes nb_conda_kernels
+# PYTHON
+# Install mostly used python packages
+RUN pip --no-cache-dir install --upgrade \
+        scanpy \
+        python-igraph \
+        louvain \
+        bbknn \
+        rpy2 \
+        pandas \
+        tzlocal \
+        scvelo \
+        leidenalg \
+        ipykernel
+# Install scanorama
+RUN git clone https://github.com/brianhie/scanorama.git && \
+    cd scanorama/ && \
+    python setup.py install
 
-# JULIA PACKAGES
 
-# Julia dependencies
-# install Julia packages in /opt/julia instead of $HOME
-ENV JULIA_DEPOT_PATH=/opt/julia
+# JULIA
+ENV JULIA_VERSION=1.4.2
 ENV JULIA_PKGDIR=/opt/julia
-ENV JULIA_VERSION=1.0.0
-
+# Install Julia packages in /opt/julia instead of $HOME
+ENV JULIA_DEPOT_PATH=/opt/julia
 RUN mkdir /opt/julia-${JULIA_VERSION} && \
     cd /tmp && \
     wget -q https://julialang-s3.julialang.org/bin/linux/x64/`echo ${JULIA_VERSION} | cut -d. -f 1,2`/julia-${JULIA_VERSION}-linux-x86_64.tar.gz && \
-    echo "bea4570d7358016d8ed29d2c15787dbefaea3e746c570763e7ad6040f17831f3 *julia-${JULIA_VERSION}-linux-x86_64.tar.gz" | sha256sum -c - && \
+    wget -q https://julialang-s3.julialang.org/bin/checksums/julia-${JULIA_VERSION}.sha256 && \
+    echo "$(cat julia-${JULIA_VERSION}.sha256 | grep linux-x86_64 | awk '{print $1}') *julia-${JULIA_VERSION}-linux-x86_64.tar.gz" | sha256sum --check --status && \
     tar xzf julia-${JULIA_VERSION}-linux-x86_64.tar.gz -C /opt/julia-${JULIA_VERSION} --strip-components=1 && \
-    rm /tmp/julia-${JULIA_VERSION}-linux-x86_64.tar.gz
-RUN ln -fs /opt/julia-*/bin/julia /usr/local/bin/julia
-
-# Show Julia where conda libraries are \
-RUN mkdir /etc/julia && \
+    rm /tmp/julia-${JULIA_VERSION}.sha256 && \
+    rm /tmp/julia-${JULIA_VERSION}-linux-x86_64.tar.gz && \
+    ln -fs /opt/julia-*/bin/julia /usr/local/bin/julia && \
+    # show Julia where conda libraries are \
+    mkdir /etc/julia && \
     echo "push!(Libdl.DL_LOAD_PATH, \"$CONDA_DIR/lib\")" >> /etc/julia/juliarc.jl && \
-    # Create JULIA_PKGDIR \
     mkdir $JULIA_PKGDIR && \
     chown $NB_USER $JULIA_PKGDIR && \
     fix-permissions $JULIA_PKGDIR
 
 # Fix permissions
-RUN conda clean -tipsy && \
-    fix-permissions $CONDA_DIR && \
-    fix-permissions /home/$NB_USER
+RUN fix-permissions $CONDA_DIR && \
+    fix-permissions /home/$NB_USER 
 
 USER $NB_UID
 
+RUN julia -e 'import Pkg; Pkg.update()' && \
+    julia -e 'import Pkg; Pkg.add("IJulia")' && \
+    julia -e 'using IJulia'
+    
 # Add Julia packages. Only add HDF5 if this is not a test-only build since
 # it takes roughly half the entire build time of all of the images on Travis
 # to add this one package and often causes Travis to timeout.
@@ -167,11 +168,9 @@ USER $NB_UID
 # Install IJulia as jovyan and then move the kernelspec out
 # to the system share location. Avoids problems with runtime UID change not
 # taking effect properly on the .local folder in the jovyan home dir.
-RUN julia -e 'import Pkg; Pkg.update()' && \
     # (test $TEST_ONLY_BUILD || julia -e 'import Pkg; Pkg.add("HDF5")') && \
     # julia -e 'import Pkg; Pkg.add("Gadfly")' && \
     # julia -e 'import Pkg; Pkg.add("RDatasets")' && \
-    julia -e 'import Pkg; Pkg.add("IJulia")' && \
     # julia -e 'import Pkg; Pkg.add("Distances")' && \
     # julia -e 'import Pkg; Pkg.add("StatsBase")' && \
     # julia -e 'import Pkg; Pkg.add("Hadamard")' && \
@@ -184,40 +183,29 @@ RUN julia -e 'import Pkg; Pkg.update()' && \
     # julia -e 'import Pkg; Pkg.add("LsqFit")' && \
     # julia -e 'import Pkg; Pkg.add("Combinatorics")' && \
     # julia -e 'import Pkg; Pkg.add("Cairo")' && \
-    # Precompile Julia packages \
-    julia -e 'using IJulia'
+    # Precompile Julia packages \    
+
 
 USER root
 
-# Install Docker
-RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-RUN add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-RUN apt update
-RUN apt install -y docker-ce
-# Fix docker in sanger internal network
-# https://ssg-confluence.internal.sanger.ac.uk/display/OPENSTACK/Commonly+encountered+errors
-RUN mkdir -p /etc/default/
-RUN echo "DOCKER_OPTS=\"--dns 172.18.255.1 --dns 172.18.255.2 --bip=192.168.3.3/24 --mtu=1380\"" >> /etc/default/docker
-
-# move kernelspec out of home
+# Move kernelspec out of home
 RUN mv $HOME/.local/share/jupyter/kernels/julia* $CONDA_DIR/share/jupyter/kernels/ && \
     chmod -R go+rx $CONDA_DIR/share/jupyter && \
     rm -rf $HOME/.local && \
     fix-permissions $JULIA_PKGDIR $CONDA_DIR/share/jupyter
 
-# MAKE DEFAULT USER SUDO
 
-# give jovyan sudo permissions
+# Give jovyan sudo permissions
 RUN sed -i -e "s/Defaults    requiretty.*/ #Defaults    requiretty/g" /etc/sudoers
 RUN echo "jovyan ALL= (ALL) NOPASSWD: ALL" >> /etc/sudoers.d/jovyan
 
-# copy template notebooks to the image
+# Copy template notebooks to the image
 COPY files/data /home/jovyan/data
 COPY files/notebooks /home/jovyan/notebooks
 
-# copy mount script
+# Copy mount script
 COPY mount-farm /usr/local/bin/mount-farm
 RUN chmod +x /usr/local/bin/mount-farm
 
-# copy poststart script
+# Copy poststart script
 COPY poststart.sh /

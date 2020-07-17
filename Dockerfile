@@ -59,7 +59,7 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
     tmux \
     # singularity dependencies
     build-essential libssl-dev uuid-dev libgpgme11-dev squashfs-tools libseccomp-dev pkg-config cryptsetup && \
-    && apt-get clean && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # Select the right versio of libblas to be used. 

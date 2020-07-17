@@ -57,7 +57,9 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
     fuse libfuse2 sshfs \
     libxkbcommon-x11-0 \
     tmux \
-    && apt-get clean && \
+    # singularity dependencies
+    build-essential libssl-dev uuid-dev libgpgme11-dev squashfs-tools libseccomp-dev pkg-config cryptsetup && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # Select the right versio of libblas to be used. 
@@ -185,7 +187,6 @@ RUN julia -e 'import Pkg; Pkg.update()' && \
     # julia -e 'import Pkg; Pkg.add("Cairo")' && \
     # Precompile Julia packages \    
 
-
 USER root
 
 # Move kernelspec out of home
@@ -194,6 +195,23 @@ RUN mv $HOME/.local/share/jupyter/kernels/julia* $CONDA_DIR/share/jupyter/kernel
     rm -rf $HOME/.local && \
     fix-permissions $JULIA_PKGDIR $CONDA_DIR/share/jupyter
 
+# Install GO
+RUN VERSION=1.14 OS=linux ARCH=amd64 && \
+    cd /tmp && wget https://dl.google.com/go/go$VERSION.$OS-$ARCH.tar.gz && \
+    tar -C /usr/local -xzf go$VERSION.$OS-$ARCH.tar.gz && \
+    rm go$VERSION.$OS-$ARCH.tar.gz
+ENV GOPATH=/home/jovyan/.go
+ENV PATH=/usr/local/go/bin:$PATH:$GOPATH/bin
+
+# Install singularity
+RUN VERSION=3.6.0 && \
+    wget https://github.com/sylabs/singularity/releases/download/v$VERSION/singularity-$VERSION.tar.gz && \
+    tar -xzf singularity-$VERSION.tar.gz && \
+    cd singularity && \
+    ./mconfig && \
+    make -C builddir && \
+    make -C builddir install && \
+    cd .. && rm -rf singularity
 
 # Give jovyan sudo permissions
 RUN sed -i -e "s/Defaults    requiretty.*/ #Defaults    requiretty/g" /etc/sudoers

@@ -38,4 +38,8 @@ if [ ! -d .bash_profile ]; then
     source ~/.bashrc
 fi
 
+export MEM_LIMIT=$(cat /sys/fs/cgroup/memory/memory.limit_in_bytes)
+CPU_NANOLIMIT=$(cat /sys/fs/cgroup/cpu/cpu.cfs_quota_us)
+export CPU_LIMIT=$(($CPU_NANOLIMIT/100000))
+
 export USER=jovyan

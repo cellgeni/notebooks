@@ -118,7 +118,7 @@ RUN Rscript -e "install.packages('hdf5r',configure.args='--with-hdf5=/usr/bin/h5
 
 # PYTHON
 # Install mostly used python packages
-RUN pip --no-cache-dir install --upgrade \
+RUN pip --no-cache install --upgrade \
         scanpy \
         python-igraph \
         louvain \
@@ -128,7 +128,9 @@ RUN pip --no-cache-dir install --upgrade \
         tzlocal \
         scvelo \
         leidenalg \
-        ipykernel
+        ipykernel \
+        ipywidgets \
+        nbresuse
 # Install scanorama
 RUN cd /tmp && \
     git clone https://github.com/brianhie/scanorama.git && \

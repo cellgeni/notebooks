@@ -54,13 +54,15 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
     gettext \
     libpng-dev \
     libpixman-1-0 \ 
-    fuse libfuse2 sshfs \
     libxkbcommon-x11-0 \
     tmux \
+    # sshfs dependencies
+    fuse libfuse2 sshfs \
     # singularity dependencies
     build-essential libssl-dev uuid-dev libgpgme11-dev squashfs-tools libseccomp-dev pkg-config cryptsetup && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
 
 # Select the right versio of libblas to be used. 
 # There was a problem running R in python and vice versa
@@ -69,13 +71,14 @@ RUN pip install --no-cache-dir simplegeneric &&\
 
 
 # Install RStudio
-ENV RSTUDIO_PKG=rstudio-server-1.2.5019-amd64.deb
-RUN wget -q https://download2.rstudio.org/server/bionic/amd64/${RSTUDIO_PKG} && \
+RUN RSTUDIO_PKG=rstudio-server-1.2.5019-amd64.deb && \
+    wget -q https://download2.rstudio.org/server/bionic/amd64/${RSTUDIO_PKG} && \
     dpkg -i ${RSTUDIO_PKG} && \
     rm ${RSTUDIO_PKG}
 # Add RStudio to PATH and R and java and conda to LD_LIBRARY_PATH
 ENV PATH="${PATH}:/usr/lib/rstudio-server/bin"
 ENV LD_LIBRARY_PATH="/usr/lib/R/lib:/lib:/usr/lib/x86_64-linux-gnu:/usr/lib/jvm/default-java/lib/server:/opt/conda/lib/R/lib"
+
 
 # Install jupyter-server-proxy extension and jupyter-rsession-proxy (nbrsessionproxy from yuvipanda)
 RUN pip install --no-cache-dir \
@@ -127,9 +130,11 @@ RUN pip --no-cache-dir install --upgrade \
         leidenalg \
         ipykernel
 # Install scanorama
-RUN git clone https://github.com/brianhie/scanorama.git && \
+RUN cd /tmp && \
+    git clone https://github.com/brianhie/scanorama.git && \
     cd scanorama/ && \
-    python setup.py install
+    python setup.py install && \
+    rm -rf /tmp/scanorama
 
 
 # JULIA
@@ -205,17 +210,26 @@ ENV PATH=/usr/local/go/bin:$PATH:$GOPATH/bin
 
 # Install singularity
 RUN VERSION=3.6.0 && \
+    cd /tmp && \
     wget https://github.com/sylabs/singularity/releases/download/v$VERSION/singularity-$VERSION.tar.gz && \
     tar -xzf singularity-$VERSION.tar.gz && \
+    rm singularity-$VERSION.tar.gz && \
     cd singularity && \
     ./mconfig && \
     make -C builddir && \
     make -C builddir install && \
-    cd .. && rm -rf singularity
+    rm -rf /tmp/singularity
+
+# Install rclone
+RUN cd /tmp && \
+    wget https://downloads.rclone.org/rclone-current-linux-amd64.deb && \
+    apt-get install -y /tmp/rclone-current-linux-amd64.deb && \
+    rm /tmp/rclone-current-linux-amd64.deb
+
 
 # Give jovyan sudo permissions
-RUN sed -i -e "s/Defaults    requiretty.*/ #Defaults    requiretty/g" /etc/sudoers
-RUN echo "jovyan ALL= (ALL) NOPASSWD: ALL" >> /etc/sudoers.d/jovyan
+RUN sed -i -e "s/Defaults    requiretty.*/ #Defaults    requiretty/g" /etc/sudoers && \
+    echo "jovyan ALL= (ALL) NOPASSWD: ALL" >> /etc/sudoers.d/jovyan
 
 # Copy template notebooks to the image
 COPY files/data /home/jovyan/data

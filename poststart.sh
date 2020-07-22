@@ -35,9 +35,10 @@ fi
 
 # make login shells source .bashrc
 if [ ! -d .bash_profile ]; then
-    source ~/.bashrc
+    echo "source ~/.bashrc" > .bash_profile
 fi
 
+# set env vars for nbresuse limits
 export MEM_LIMIT=$(cat /sys/fs/cgroup/memory/memory.limit_in_bytes)
 CPU_NANOLIMIT=$(cat /sys/fs/cgroup/cpu/cpu.cfs_quota_us)
 export CPU_LIMIT=$(($CPU_NANOLIMIT/100000))

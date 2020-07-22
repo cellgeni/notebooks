@@ -132,9 +132,6 @@ RUN pip --no-cache install --upgrade \
         ipywidgets \
         nbresuse
 
-# jupyter extensions
-RUN jupyter labextension install @jupyterlab/toc
-
 # Install scanorama
 RUN cd /tmp && \
     git clone https://github.com/brianhie/scanorama.git && \

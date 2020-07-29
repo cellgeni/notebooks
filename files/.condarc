@@ -1,2 +1,3 @@
 envs_dirs:
   - /home/jovyan/my-conda-envs/
+env_prompt: ({name})

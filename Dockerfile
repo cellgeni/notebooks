@@ -128,9 +128,10 @@ RUN pip --no-cache install --upgrade \
         tzlocal \
         scvelo \
         leidenalg \
-        ipykernel \
         ipywidgets \
-        nbresuse
+        nbresuse && \
+    # install nb_conda_kernels and ipykernel to make envs available as kernels in jupyter
+    conda install nb_conda_kernels ipykernel
 
 # Install scanorama
 RUN cd /tmp && \
@@ -229,18 +230,16 @@ RUN cd /tmp && \
     apt-get install -y /tmp/rclone-current-linux-amd64.deb && \
     rm /tmp/rclone-current-linux-amd64.deb
 
-
 # Give jovyan sudo permissions
 RUN sed -i -e "s/Defaults    requiretty.*/ #Defaults    requiretty/g" /etc/sudoers && \
     echo "jovyan ALL= (ALL) NOPASSWD: ALL" >> /etc/sudoers.d/jovyan
 
-# Copy template notebooks to the image
-COPY files/data /home/jovyan/data
-COPY files/notebooks /home/jovyan/notebooks
-
 # Copy mount script
 COPY mount-farm /usr/local/bin/mount-farm
 RUN chmod +x /usr/local/bin/mount-farm
+
+# Copy config files
+COPY config /config
 
 # Copy poststart script
 COPY poststart.sh /

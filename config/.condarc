@@ -1,0 +1,11 @@
+env_prompt: ({name})
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+envs_dirs:
+  - /home/jovyan/my-conda-envs/
+create_default_packages:
+  - pip
+  - ipykernel
+  - nb_conda_kernels

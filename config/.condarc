@@ -1,3 +1,7 @@
+env_prompt: ({name})
 envs_dirs:
   - /home/jovyan/my-conda-envs/
-env_prompt: ({name})
+create_default_packages:
+  - pip
+  - ipykernel
+  - nb_conda_kernels

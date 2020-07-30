@@ -128,10 +128,9 @@ RUN pip --no-cache install --upgrade \
         tzlocal \
         scvelo \
         leidenalg \
-        ipykernel \
         ipywidgets \
         nbresuse && \
-    conda install nb_conda nb_conda_kernels
+    conda install nb_conda nb_conda_kernels ipykernel
 
 # Install scanorama
 RUN cd /tmp && \
@@ -242,6 +241,9 @@ COPY files/notebooks /home/jovyan/notebooks
 # Copy mount script
 COPY mount-farm /usr/local/bin/mount-farm
 RUN chmod +x /usr/local/bin/mount-farm
+
+# Copy config files
+COPY config /config
 
 # Copy poststart script
 COPY poststart.sh /

@@ -235,8 +235,8 @@ RUN sed -i -e "s/Defaults    requiretty.*/ #Defaults    requiretty/g" /etc/sudoe
     echo "jovyan ALL= (ALL) NOPASSWD: ALL" >> /etc/sudoers.d/jovyan
 
 # Copy template notebooks to the image
-COPY files/data /home/jovyan/data
-COPY files/notebooks /home/jovyan/notebooks
+# COPY files/data /home/jovyan/data
+# COPY files/notebooks /home/jovyan/notebooks
 
 # Copy mount script
 COPY mount-farm /usr/local/bin/mount-farm

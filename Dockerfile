@@ -131,7 +131,7 @@ RUN pip --no-cache install --upgrade \
         ipykernel \
         ipywidgets \
         nbresuse && \
-    conda install nb_conda_kernels
+    conda install nb_conda nb_conda_kernels
 
 # Install scanorama
 RUN cd /tmp && \

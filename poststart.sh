@@ -8,9 +8,10 @@ if [ ! -d notebooks ]; then
 fi
 
 # set .condarc to use deafult env path (~/my-conda-envs)
-if [ ! -d notebooks ]; then
-    cp /config/.condarc /home/jovyan/
+if [[ -d .condarc ]]; then
+    mv .condarc .condarc.old
 fi
+cp /config/.condarc /home/jovyan/
 
 # create default environment 'myenv'
 if [ ! -d my-conda-envs/myenv ]; then
@@ -19,9 +20,10 @@ if [ ! -d my-conda-envs/myenv ]; then
 fi
 
 # set .Rprofile to use binary packages
-if [ ! -d .Rprofile ]; then
-    cp /config/.Rprofile /home/jovyan/
+if [[ -d .Rprofile ]]; then
+    mv .Rprofile .Rprofile.old
 fi
+cp /config/.Rprofile /home/jovyan/
 
 Rscript -e 'dir.create(path = Sys.getenv("R_LIBS_USER"), showWarnings = FALSE, recursive = TRUE)'
 Rscript -e '.libPaths( c( Sys.getenv("R_LIBS_USER"), .libPaths() ) )'
@@ -49,3 +51,6 @@ CPU_NANOLIMIT=$(cat /sys/fs/cgroup/cpu/cpu.cfs_quota_us)
 export CPU_LIMIT=$(($CPU_NANOLIMIT/100000))
 
 export USER=jovyan
+
+# download package information from all configured sources
+sudo apt-get update

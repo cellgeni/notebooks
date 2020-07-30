@@ -130,7 +130,8 @@ RUN pip --no-cache install --upgrade \
         leidenalg \
         ipykernel \
         ipywidgets \
-        nbresuse
+        nbresuse && \
+    conda install nb_conda_kernels
 
 # Install scanorama
 RUN cd /tmp && \

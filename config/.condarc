@@ -8,4 +8,3 @@ envs_dirs:
 create_default_packages:
   - pip
   - ipykernel
-  - nb_conda_kernels

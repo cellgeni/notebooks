@@ -154,13 +154,13 @@ RUN mkdir /opt/julia-${JULIA_VERSION} && \
     tar xzf julia-${JULIA_VERSION}-linux-x86_64.tar.gz -C /opt/julia-${JULIA_VERSION} --strip-components=1 && \
     rm /tmp/julia-${JULIA_VERSION}.sha256 && \
     rm /tmp/julia-${JULIA_VERSION}-linux-x86_64.tar.gz && \
-    ln -fs /opt/julia-*/bin/julia /usr/local/bin/julia
+    ln -fs /opt/julia-*/bin/julia /usr/local/bin/julia && \
     # show Julia where conda libraries are \
     # mkdir /etc/julia && \
     # echo "push!(Libdl.DL_LOAD_PATH, \"$CONDA_DIR/lib\")" >> /etc/julia/juliarc.jl && \
-    # mkdir $JULIA_PKGDIR && \
-    # chown $NB_USER $JULIA_PKGDIR && \
-    # fix-permissions $JULIA_PKGDIR
+    mkdir $JULIA_PKGDIR && \
+    chown $NB_USER $JULIA_PKGDIR && \
+    fix-permissions $JULIA_PKGDIR
 
 # Fix permissions
 RUN fix-permissions $CONDA_DIR && \

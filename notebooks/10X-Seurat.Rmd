@@ -100,7 +100,7 @@ pbmc <- NormalizeData(object = pbmc, normalization.method = "LogNormalize", scal
 Seurat calculates highly variable genes and focuses on these for downstream analysis. `FindVariableGenes` calculates the average expression and dispersion for each gene, places these genes into bins, and then calculates a z-score for dispersion within each bin. This helps control for the relationship between variability and average expression. This function is unchanged from (Macosko et al.), but new methods for variable gene expression identification are coming soon. We suggest that users set these parameters to mark visual outliers on the dispersion plot, but the exact parameter settings may vary based on the data type, heterogeneity in the sample, and normalization strategy. The parameters here identify ~2,000 variable genes, and represent typical parameter settings for UMI data that is normalized to a total of 1e4 molecules.
 
 ```{r}
-pbmc <- FindVariableFeatures(object = pbmc, mean.function = ExpMean, dispersion.function = LogVMR, x.low.cutoff = 0.0125, x.high.cutoff = 3, y.cutoff = 0.5, nfeatures = 2000)
+pbmc <- FindVariableFeatures(object = pbmc, mean.function = ExpMean, dispersion.function = LogVMR, mean.cutoff = c(0.0125, 3), nfeatures = 2000)
 ```
 
 To view the output of the FindVariableFeatures output we use this function. The genes appear not to be stored in the object, but can be accessed this way.
@@ -117,7 +117,7 @@ We can regress out cell-cell variation in gene expression driven by batch (if ap
 Seurat v2.0 implements this regression as part of the data scaling process. Therefore, the `RegressOut` function has been deprecated, and replaced with the vars.to.regress argument in `ScaleData`.
 
 ```{r}
-pbmc <- ScaleData(object = pbmc, vars.to.regress = c("nCounts_RNA", "percent.mito"))
+pbmc <- ScaleData(object = pbmc, vars.to.regress = c("nCount_RNA", "percent.mito"))
 ```
 
 ## Perform linear dimensional reduction
@@ -160,12 +160,13 @@ FeatureScatter(object = pbmc, feature1 = "MS4A1", feature2 = "CD3D")
 
 ```{r}
 # Scatter plot across individual features, repleaces CellPlot
-CellScatter(object = pbmc, cell1 = "AGTCTACTAGGGTG", cell2 = "CACAGATGGTTTCT")
+CellScatter(object = pbmc, cell1 = "AGTCTACTAGGGTG-1", cell2 = "CACAGATGGTTTCT-1")
 ```
 
 ```{r}
 VariableFeaturePlot(object = pbmc)
 ```
+
 ```{r}
 # Violin and Ridge plots
 VlnPlot(object = pbmc, features = c("LYZ", "CCL5", "IL32"))
@@ -278,7 +279,7 @@ pbmc.markers %>% group_by(cluster) %>% top_n(2, avg_logFC)
 Seurat has several tests for differential expression which can be set with the test.use parameter (see our [DE vignette](http://satijalab.org/seurat/de_vignette.html) for details). For example, the ROC test returns the ‘classification power’ for any individual marker (ranging from 0 - random, to 1 - perfect).
 
 ```{r}
-cluster1.markers <- FindMarkers(object = pbmc, ident.1 = 0, thresh.use = 0.25, test.use = "roc", only.pos = TRUE)
+cluster1.markers <- FindMarkers(object = pbmc, ident.1 = 0, logfc.threshold = 0.25, test.use = "roc", only.pos = TRUE)
 ```
 
 We include several tools for visualizing marker expression. 
@@ -315,7 +316,7 @@ Fortunately in the case of this dataset, we can use canonical markers to easily 
 current.cluster.ids <- c(0, 1, 2, 3, 4, 5, 6, 7)
 new.cluster.ids <- c("CD4 T cells", "CD14+ Monocytes", "B cells", "CD8 T cells", "FCGR3A+ Monocytes", "NK cells", "Dendritic cells", "Megakaryocytes")
 pbmc@active.ident <- plyr::mapvalues(x = pbmc@active.ident, from = current.cluster.ids, to = new.cluster.ids)
-TSNEPlot(object = pbmc, do.label = TRUE, pt.size = 0.5)
+TSNEPlot(object = pbmc, label = TRUE, pt.size = 0.5)
 ```
 
 ## Further subdivisions within cell types
@@ -324,18 +325,18 @@ If you perturb some of our parameter choices above (for example, setting `resolu
 
 ```{r}
 # First lets stash our identities for later
-pbmc <- StashIdent(object = pbmc, save.name = "ClusterNames_0.6")
+pbmc[["ClusterNames_0.6"]] <- Idents(object = pbmc)
 
 # Note that if you set save.snn=T above, you don't need to recalculate the
 # SNN, and can simply put: pbmc <- FindClusters(pbmc,resolution = 0.8)
-pbmc <- FindClusters(object = pbmc, reduction.type = "pca", dims.use = 1:10, resolution = 0.8, print.output = FALSE)
+pbmc <- FindClusters(object = pbmc, resolution = 0.8, verbose = FALSE)
 ```
 
 ```{r}
 # Demonstration of how to plot two tSNE plots side by side, and how to color
 # points based on different criteria
-plot1 <- TSNEPlot(object = pbmc, do.return = TRUE, no.legend = TRUE, do.label = TRUE)
-plot2 <- TSNEPlot(object = pbmc, do.return = TRUE, group.by = "ClusterNames_0.6", no.legend = TRUE, do.label = TRUE)
+plot1 <- TSNEPlot(object = pbmc, label = TRUE)
+plot2 <- TSNEPlot(object = pbmc, group.by = "ClusterNames_0.6", label = TRUE)
 plot_grid(plot1, plot2)
 ```
 

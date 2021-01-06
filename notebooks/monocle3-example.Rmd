@@ -2,16 +2,16 @@ In order to run monocle3 a few steps must first be followed. Monocle3 requires R
 1) Installing bioconductor:
 
 ```{r}
-if (!requireNamespace("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
-BiocManager::install()
+#if (!requireNamespace("BiocManager", quietly = TRUE))
+#    install.packages("BiocManager")
+#BiocManager::install()
 ```
 
 A few bioconductor dependencies are not automatically installed so you should install the,.
 2) Installing bioconductor dependencies:
 
 ```{r}
-BiocManager::install(c('BiocGenerics', 'DelayedArray', 'DelayedMatrixStats',
+#BiocManager::install(c('BiocGenerics', 'DelayedArray', 'DelayedMatrixStats',
                    'limma', 'S4Vectors', 'SingleCellExperiment',
                    'SummarizedExperiment', 'batchelor'))
 ```
@@ -192,7 +192,7 @@ cdt <- reduce_dimension(cdt)
 cdt <- cluster_cells(cdt, reduction_method = 'UMAP')
 ```
 
-A principal  graph is ffitted within each partition in the next component.
+A principal  graph is fitted within each partition in the next component.
 
 ```{r}
 cdt <- learn_graph(cdt)
@@ -219,7 +219,7 @@ plot_cells(cdt,
            show_trajectory_graph=FALSE)
 ```
 
-Now you have to select which cells you want as you starting point. A pop up will appear with options "trust browser" or cancel. Click "trust browser". Then the graph should appear and you can select your starting cells.
+Now you have to select which cells you want as you starting point. A pop up will appear with options "trust browser" or cancel. Click "try again". Then the graph should appear and you can select your starting cells.
 
 ```{r}
 cdt = order_cells(cdt)

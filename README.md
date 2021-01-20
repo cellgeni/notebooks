@@ -17,4 +17,4 @@ Jupyter allows you to run your analysis in multiple environments (R, Python, Jul
 
 We support a Jupyter Hub server running on Sanger Cloud. All programme notebooks can run on the [Cellular Genetics Informatics JupyterHub](https://cellgeni.readthedocs.io/en/latest/jupyterhub.html)
 
-Alternatively, you can run them using the our [docker image](https://github.com/cellgeni/docker-jupyter).
+Alternatively, you can run them using one of our [docker images](https://github.com/cellgeni/jupyter-images).

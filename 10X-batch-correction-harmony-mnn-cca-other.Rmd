@@ -1,0 +1,356 @@
+# Batch correction using R tools
+
+This Jupyter notebook is a template notebook for batch correction of 10X data using [Harmony](https://github.com/immunogenomics/harmony), [mnnCorrect](http://bioconductor.org/packages/release/bioc/html/scran.html), [multiCCA](https://satijalab.org/seurat/), [Combat](http://bioconductor.org/packages/release/bioc/html/sva.html) and [limma](http://bioconductor.org/packages/release/bioc/html/limma.html) tools.
+
+Some of the batch correction tools correct the expression matrix, however some of the tools only perform correction in the low dimensional space:
+* Harmony --> corrects the PCA graph
+* mnnCorrect --> corrects the expression matrix
+* multiCCA (Seurat_v2) --> corrects the CC vectors (similar to PCA graph correction)
+* Anchors (Seurat_v3) --> corrects the expression matrix
+* ComBat --> corrects the expression matrix
+* Limma --> corrects the expression matrix
+
+```{r}
+library(SingleCellExperiment) # object processing
+library(scater) # object processing
+library(harmony) # Harmony
+library(magrittr) # Harmony
+library(scran) # mnnCorrect
+library(Seurat) # MultiCCA
+library(sva) # ComBat
+library(limma) # Limma
+```
+
+## Datasets
+
+In this notebook will use 3 publicly available 10X datasets:
+- [1k PBMCs from a Healthy Donor (v2 chemistry)](https://support.10xgenomics.com/single-cell-gene-expression/datasets/3.0.0/pbmc_1k_v2)
+- [1k PBMCs from a Healthy Donor (v3 chemistry)](https://support.10xgenomics.com/single-cell-gene-expression/datasets/3.0.0/pbmc_1k_v3)
+- [3k PBMCs from a Healthy Donor (v1 chemistry)](https://support.10xgenomics.com/single-cell-gene-expression/datasets/1.1.0/pbmc3k)
+
+```{r}
+library(DropletUtils)
+A_data <- read10xCounts("../data/pbmc_1k_v2_filtered_feature_bc_matrix.h5")
+B_data <- read10xCounts("../data/pbmc_1k_v3_filtered_feature_bc_matrix.h5")
+C_data <- read10xCounts("../data/pbmc3k_filtered_gene_bc_matrices/hg19/")
+# convert counts to proper matrix instead of delayed matrix
+# https://github.com/mtmorgan/TENxGenomics
+counts(A_data) <- as.matrix(counts(A_data))
+counts(B_data) <- as.matrix(counts(B_data))
+```
+
+## QC of the data
+### Filtering
+Here we follow a standard scanpy workflow:
+* remove those genes expressed in less than 3 cells
+* remove those cells with less than 200 genes expressed
+
+```{r initial QC}
+datasets <- list(A_data, B_data, C_data)
+for (i in 1:length(datasets)){
+  datasets[[i]] <- datasets[[i]][
+    apply(counts(datasets[[i]]), 1, function(x) {sum(x > 0) >= 3}),
+    apply(counts(datasets[[i]]), 2, function(x){sum(x > 0) >= 200})
+  ]
+}
+```
+
+Let's calculate QC metrics:
+```{r calculateQCMetrics}
+A_data <- calculateQCMetrics(A_data)
+B_data <- calculateQCMetrics(B_data)
+C_data <- calculateQCMetrics(C_data)
+```
+
+### QC plots
+(Optional) Some manual filters can be applied after exploring this plots:
+```{r QC plots}
+hist(A_data$total_counts, breaks = 100, xlab = "Total counts")
+hist(A_data$total_features_by_counts, breaks = 100,  xlab = "Total features")
+plotColData(A_data, y = "total_counts", x = "total_features_by_counts")
+
+hist(B_data$total_counts, breaks = 100, xlab = "Total counts")
+hist(B_data$total_features_by_counts, breaks = 100,  xlab = "Total features")
+plotColData(B_data, y = "total_counts", x = "total_features_by_counts")
+
+hist(C_data$total_counts, breaks = 100, xlab = "Total counts")
+hist(C_data$total_features_by_counts, breaks = 100,  xlab = "Total features")
+plotColData(C_data, y = "total_counts", x = "total_features_by_counts")
+```
+
+### Normalization and log-transforming
+```{r}
+logcounts(A_data) <- log2(calculateCPM(A_data, use_size_factors = FALSE, exprs_values = "counts") + 1)
+logcounts(B_data) <- log2(calculateCPM(B_data, use_size_factors = FALSE, exprs_values = "counts") + 1)
+logcounts(C_data) <- log2(calculateCPM(C_data, use_size_factors = FALSE, exprs_values = "counts") + 1)
+```
+
+
+### Merge datasets
+In order to merge datasets matrices must have same number of rows. We will find the common genes between datasets and subset by them.
+
+```{r gene_names}
+common_genes <- rowData(C_data)$ID[rowData(C_data)$ID %in% rowData(B_data)$ID[rowData(B_data)$ID %in% rowData(A_data)$ID]]
+length(common_genes)
+```
+```{r}
+A_data <- A_data[common_genes,]
+B_data <- B_data[common_genes,]
+C_data <- C_data[common_genes,]
+```
+
+Now let's merge the datasets:
+```{r}
+combined_counts <- cbind(counts(A_data), counts(B_data), counts(C_data))
+combined_logcounts <- cbind(logcounts(A_data), logcounts(B_data), logcounts(C_data))
+
+dataset_labels <- rep(c("A", "B", "C"), times = c(ncol(A_data), ncol(B_data), ncol(C_data)))
+
+cell_names <- c(paste("A-cell", c(1:ncol(A_data))),
+                paste("B-cell", c(1:ncol(B_data))),
+                paste("C-cell", c(1:ncol(C_data))))
+
+cell_data <- data.frame("dataset" = dataset_labels,
+                        "cell_ID" = cell_names)
+
+merged <- SingleCellExperiment(assay = list(
+                                 counts = combined_counts,
+                                 logcounts = as(combined_logcounts, "dgCMatrix")),
+                               colData = cell_data,
+                               rowData = list("ID" = common_genes)
+)
+colnames(merged) <- cell_data$cell_ID
+# remove completely zero genes
+merged <- merged[rowSums(counts(merged) > 0) > 0,]
+```
+
+## Visualisation
+```{r}
+plotPCA(merged, colour_by = "dataset")
+plotUMAP(merged, colour_by = "dataset")
+```
+
+## Tools
+### Harmony
+Let's run Harmony correction:
+```{r Harmony variables}
+merged <- runPCA(merged, method = "prcomp", exprs_values = "logcounts", ncomponents = 10)
+pca <- merged@reducedDims@listData[["PCA"]]
+batch_vector = merged$dataset
+harmony_emb <- HarmonyMatrix(pca, batch_vector, theta=4, do_pca = F, verbose = F)
+merged@reducedDims@listData[['harmony_emb']] <- harmony_emb
+```
+
+Check the results visually:
+```{r visualize Harmony}
+plotReducedDim(merged,1, colour_by = 'dataset')#PCA embeding
+plotReducedDim(merged,2, colour_by = 'dataset')#Harmony corrected embedding
+```
+
+### mnnCorrect
+
+`mnnCorrect` corrects batch effects in single-cell expression data using the mutual nearest neighbors method. MNN pairs between batches are considered to define the most similar cells of the same type across batches.
+
+*Note* If getting some error, try to load the subsets of merged file as.array().
+```{r}
+corrected <- mnnCorrect(
+  as.array(logcounts(merged[, merged$dataset == 'A'])),
+  as.array(logcounts(merged[, merged$dataset == 'B'])),
+  as.array(logcounts(merged[, merged$dataset == 'C'])),
+  k = 30,
+  sigma = 0.1,
+  cos.norm.in = TRUE,
+  svd.dim = 2
+)
+```
+When performing mnnCorrect, dimnames may be lost for corrected[[2]], [[3]] and so on. Let's add them manyally:
+```{r}
+colnames(corrected$corrected[[2]]) <- colnames(merged[,merged@colData@listData[["dataset"]] == 'B'])
+rownames(corrected$corrected[[2]]) <- rownames(merged[,merged@colData@listData[["dataset"]] == 'B'])
+colnames(corrected$corrected[[3]]) <- colnames(merged[,merged@colData@listData[["dataset"]] == 'C'])
+rownames(corrected$corrected[[3]]) <- rownames(merged[,merged@colData@listData[["dataset"]] == 'C'])
+```
+
+```{r}
+assay(merged, "mnn") <- cbind(corrected$corrected[[1]], corrected$corrected[[2]], corrected$corrected[[3]])
+```
+
+```{r visualize mnnCorrect}
+plotPCA(merged, run_args=list(exprs_values = "logcounts"), colour_by= "dataset")
+plotPCA(merged, run_args=list(exprs_values = "mnn"), colour_by= "dataset")
+```
+
+### multiCCA (Seurat_v2)
+
+Seurat's multiCCA requires the objects to be corrected, to be given individually, and as Seurat objects. This is why we now convert them.
+```{r}
+#convert to seurat object
+merged_seurat <- Convert(merged, to = "seurat", raw.data.slot = "logcounts", data.slot = "logcounts")
+#individualize merged object
+A_seurat <- SubsetData(merged_seurat,cells.use = merged_seurat@meta.data[["dataset"]] == "A")
+B_seurat <- SubsetData(merged_seurat,cells.use = merged_seurat@meta.data[["dataset"]] == "B")
+C_seurat <- SubsetData(merged_seurat,cells.use = merged_seurat@meta.data[["dataset"]] == "C")
+
+dataset_list = list(A_seurat, B_seurat, C_seurat)
+```
+
+```{r find variable genes and scale data}
+A_seurat <- FindVariableGenes(A_seurat)
+A_seurat <- ScaleData(A_seurat)
+B_seurat <- FindVariableGenes(B_seurat)
+B_seurat <- ScaleData(B_seurat)
+C_seurat <- FindVariableGenes(C_seurat)
+C_seurat <- ScaleData(C_seurat)
+```
+
+```{r genes to use in CCA alingment}
+dataset_list <- list(A_seurat, B_seurat, C_seurat)
+
+genes.use <- c()
+
+for (i in 1:length(dataset_list)) {
+  genes.use <- c(genes.use, rownames(dataset_list[[i]]@hvg.info)[1:4000])
+}
+
+genes.use <- names(which(table(genes.use) > 2))
+length(genes.use)
+
+for (i in 1:length(dataset_list)) {
+  genes.use <- genes.use[genes.use %in% rownames(dataset_list[[i]]@scale.data)]
+}
+length(genes.use)
+```
+
+```{r run multiCCA}
+merged_cca <- RunMultiCCA(dataset_list, genes.use = genes.use, num.ccs = 10)
+```
+
+This function provides a useful plot for evaluating the number of CCs to proceed with in the Seurat alignment workflow.
+It is similar to the elbowplot to determine the number PCs.
+```{r CC selection}
+MetageneBicorPlot(merged_cca, grouping.var = "dataset", dims.eval = 1:10)
+```
+
+```{r Optional}
+#Calculate the ratio of variance explained by PCA to CCA
+merged_cca <- CalcVarExpRatio(object = merged_cca, reduction.type = "pca",
+                                       grouping.var = "dataset", dims.use = 1:6)
+#Optional: Subset those cells with cutoff calue = accept.low
+merged_cca <- SubsetData(merged_cca, subset.name = "var.ratio.pca",
+                                           accept.low = 0.5)
+```
+
+```{r align cca subspaces of datasets}
+merged_cca <- AlignSubspace(merged_cca,
+                                     reduction.type ="cca", #pca aligment can be also done, or both, by c("cca", "pca")
+                                     grouping.var = "dataset",
+                                     dims.align = 1:5)
+```
+
+```{r visualize CCA alignment}
+# CCA before correcting
+DimPlot(object = merged_cca, reduction.use = "cca", group.by = "dataset", pt.size = 0.5) 
+# CCA After aligning subspaces
+DimPlot(object = merged_cca, reduction.use = "cca.aligned", group.by = "dataset", pt.size = 0.5) 
+```
+
+### Anchors (Seurat_v3)
+Convert object into class Seurat.
+```{r}
+merged_seurat <- as.Seurat(merged, counts = "logcounts", data = "logcounts")
+```
+
+```{r split object into batches}
+len <- length(names(table(merged_seurat$dataset)))
+batch_list <- lapply(1:len, function(x) {abc <- merged_seurat[, merged_seurat$dataset == names(table(merged_seurat$dataset))[x]]})
+```
+
+Downstream functions require data to be Normalized and Variable Features to be present. 
+If one is already working with high variable features, or simply does not want to subset the dataset, set *nfeatures* to *nrow(merged)*. 2000 is the default value.
+```{r Normalize and find HVG}
+for (i in 1:length(batch_list)) {
+  batch_list[[i]] <- NormalizeData(object = batch_list[[i]], verbose = FALSE)
+  batch_list[[i]] <- FindVariableFeatures(object = batch_list[[i]],
+                                          selection.method = "dispersion", nfeatures = 2000, verbose = FALSE)
+}
+```
+
+```{r Find integration anchors and integrate}
+anchors <- FindIntegrationAnchors(object.list = batch_list, dims = 1:30)
+integrated <- IntegrateData(anchorset = anchors, dims = 1:30)
+```
+
+Calculate UMAP for the uncorrected counts (integrated@assays[["RNA"]]) and for the batch corrected counts (integrated@assays[["integrated"]]). 
+*Note* When running PCA as a previous step to compute UMAP, Seurat aks for features to compute PCA on if **FindVariableFeatures** hasn't been ran, which is the case for the RNA assay. Again, we can set *nfeatures* to *nrow(integrated)* to account for all the genes. 
+```{r UMAP}
+for (i in 1:length(integrated@assays)){
+assay_name <- names(integrated@assays)[i]
+print(assay_name)
+DefaultAssay(object = integrated) <- assay_name
+
+
+integrated <- ScaleData(object = integrated, verbose = FALSE)
+integrated <- RunPCA(object = integrated,  npcs = 30,
+                     reduction.name = paste0("pca_", assay_name),  features = rownames(integrated), verbose = FALSE)
+integrated <- RunUMAP(integrated, reduction = paste0("pca_", assay_name), dims = 1:30, 
+                      reduction.name = paste0("umap_", assay_name), verbose = FALSE)
+}
+```
+Probable warning: "Cannot add objects with duplicate keys (offending key: PC_)". This does not affect data.
+
+
+```{r visualize correction}
+library(ggplot2)
+#before correction
+DimPlot(object = integrated, reduction = "umap_RNA", group.by = "dataset")
+#Seurat_v3 correction
+DimPlot(object = integrated, reduction = "umap_integrated", group.by = "dataset")
+```
+
+### ComBat
+*Note*: in the QC - Merge datasets step we have removed those genes with complete 0 values. This is to avoid  genes with 0 variance, which cause error when running ComBat. In case such gene removal step has been skipped previously please run:
+```{r pre ComBat}
+#merged <- merged[rowSums(logcounts(merged)) > 0, ]
+#or
+#merged <- merged[rowVars(logcounts(merged)) > 0, ]
+```
+
+```{r ComBat models}
+mod_data <- as.data.frame(t(as.matrix(logcounts(merged))))
+# Basic batch removal
+mod0 = model.matrix(~ 1, data = mod_data) 
+```
+
+```{r run ComBat}
+assay(merged, "combat") <- ComBat(
+    dat = t(mod_data), 
+    batch = merged$dataset, 
+    mod = mod0,
+    par.prior = TRUE,
+    prior.plots = FALSE
+)
+```
+
+```{r visualize ComBat}
+#before correction
+plotPCA(merged, run_args=list(exprs_values = "logcounts"), colour_by = "dataset")
+#ComBat correction
+plotPCA(merged, run_args=list(exprs_values = "combat"), colour_by = "dataset")
+```
+
+### Limma
+
+```{r run Limma}
+batch_vector <- merged$dataset
+assay(merged, "limma") <- removeBatchEffect(x = assay(merged, "logcounts"), batch = batch_vector)
+```
+
+```{r visualize Limma}
+#before correction
+plotPCA(merged, run_args=list(exprs_values = "logcounts"), colour_by = "dataset")
+#limma correction
+plotPCA(merged, run_args=list(exprs_values = "limma"), colour_by = "dataset")
+```
+
+
+

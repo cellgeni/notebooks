@@ -1,7 +1,7 @@
 In order to run monocle3 a few steps must first be followed. Monocle3 requires R version 3.5 or higher, bioconductor 3.5 or higher and monocle3 0.1.0 to run the latest features.
 1) Installing bioconductor:
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 BiocManager::install()
@@ -10,7 +10,7 @@ BiocManager::install()
 A few bioconductor dependencies are not automatically installed so you should install the,.
 2) Installing bioconductor dependencies:
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 BiocManager::install(c('BiocGenerics', 'DelayedArray', 'DelayedMatrixStats',
                    'limma', 'S4Vectors', 'SingleCellExperiment',
                    'SummarizedExperiment', 'batchelor'))
@@ -19,14 +19,14 @@ BiocManager::install(c('BiocGenerics', 'DelayedArray', 'DelayedMatrixStats',
 In order to install monocle3 a few preparations must be made. First devtools must be installed into your R environment via the R console.
 3) Installing devtools:
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 install.packages('devtools')
 ```
 
 If your rlang version is out of data this can cause a failure when trying to install monocle3 and garnett later on.
 4) Updating rlang
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 install.packages('rlang')
 library(rlang)
 ```
@@ -42,19 +42,19 @@ Finally libgdal-dev must also be installed on your terminal.
 Now we can finally installmonocle3.
 
 7)Installing monocle3:
-```{r}
+```{r message=FALSE, warning=FALSE}
 devtools::install_github('cole-trapnell-lab/monocle3')
 ```
 
 8) Installing garnett:
-```{r}
+```{r message=FALSE, warning=FALSE}
 BiocManager::install('org.Mm.eg.db')
 BiocManager::install('org.Hs.eg.db')
 devtools::install_github("cole-trapnell-lab/garnett", ref = 'monocle3')
 ```
 
 Run the following code chunk to check everything has been installed correctly, and to load all relevant packages for this tutorial.
-```{r}
+```{r message=FALSE, warning=FALSE}
 library(monocle3)
 library(shiny)
 library(ggplot2)
@@ -123,8 +123,13 @@ The data frame marker_test_res contains metrics which tell us how differently ex
 pheatmap::pheatmap(log(table(clusters(cds), colData(cds)$cao_cell_type)+1),
                    clustering_method="ward.D2",
                    fontsize=6)
+```
 
+```{r  results = FALSE, echo=FALSE, message=FALSE, warning=FALSE}
 marker_test_res = top_markers(cds, group_cells_by="partition", reference_cells=1000, cores=8)
+```
+
+```{r}
 # Find marker genes expressed by each cluster
 top_specific_markers = marker_test_res %>%
     filter(fraction_expressing >= 0.10) %>%
@@ -134,7 +139,7 @@ top_specific_markers = marker_test_res %>%
 top_specific_marker_ids = unique(top_specific_markers %>% pull(gene_id))
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 # Plotting marker genes
 plot_genes_by_group(cds,
                     top_specific_marker_ids,
@@ -145,12 +150,15 @@ plot_genes_by_group(cds,
 
 Monocle3 has developed some software which automates the the annotating of cells called Garnett. Garnett classifies cells based on marker genes. Firstly we must fnd the top marker that each annotated cell type expresses using top_markers(). Next we filter these markers based on the conditions required (in this example it is JS specificity > 0.5 and be significant in logistic test marker_test_q_value < 0.01). We then generate a marker file called ./marker_file.txt which contains each cell type and top 5 expressed markers.
 
-```{r}
+```{r results = FALSE, echo=FALSE, message=FALSE, warning=FALSE}
 # Annotate your cells according to type
 assigned_type_marker_test_res = top_markers(cds,
                                             group_cells_by="cluster",
                                             reference_cells=1000,
                                             cores=8)
+```
+
+```{r}
 # Require that markers have at least JS specificty score > 0.5 and be significant
 # in the logistic test for identifying their cell type:
 garnett_markers = assigned_type_marker_test_res %>%
@@ -163,7 +171,7 @@ garnett_markers = garnett_markers %>% group_by(gene_short_name) %>%
 generate_garnett_marker_file(garnett_markers, file="./marker_file.txt")
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 plot_cells(cds,
            group_cells_by="cluster",
            color_cells_by="cluster")
@@ -186,7 +194,7 @@ cdt <- new_cell_data_set(expression_matrix2,
                          gene_metadata = gene_annotation2)
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE} 
 cdt <- preprocess_cds(cdt, num_dim = 100, residual_model_formula_str = "~ bg.300.loading + bg.400.loading + bg.500.1.loading + bg.500.2.loading + bg.r17.loading + bg.b01.loading + bg.b02.loading")
 
 cdt <- reduce_dimension(cdt)
@@ -198,7 +206,7 @@ cdt <- cluster_cells(cdt, reduction_method = 'UMAP')
 
 A principal  graph is fitted within each partition in the next component.
 
-```{r}
+```{r results = FALSE, echo=FALSE, message=FALSE, warning=FALSE}
 cdt <- learn_graph(cdt)
 ```
 
@@ -283,7 +291,7 @@ plot_cells(cdt,
            graph_label_size=1.5)
 ```
 
-```{r}
+```{r results = FALSE, echo=FALSE, message=FALSE, warning=FALSE}
 # Processing data for a 3D plot
 cds_3d = reduce_dimension(cdt, max_components = 3)
 cds_3d = cluster_cells(cds_3d)
@@ -291,7 +299,7 @@ cds_3d = learn_graph(cds_3d)
 cds_3d = order_cells(cds_3d, root_pr_nodes=get_earliest_principal_node(cdt))
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 # 3D visualisation of data
 plot_cells_3d(cds_3d, color_cells_by="pseudotime")
 ```
@@ -317,7 +325,7 @@ emb_time_terms %>% filter (q_value < 0.05) %>%
   select(gene_short_name, term, q_value, estimate)
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 plot_genes_violin(cds_subset, group_cells_by="embryo.time.bin", ncol=2) +
     theme(axis.text.x=element_text(angle=45, hjust=1))
 ```
@@ -327,7 +335,9 @@ gene_fits = fit_models(cds_subset, model_formula_str = "~embryo.time + batch")
 fit_coefs = coefficient_table(gene_fits)
 fit_coefs %>% filter(term != "(Intercept)") %>%
   select(gene_short_name, term, q_value, estimate)
+```
 
+```{r message=FALSE, warning=FALSE}
 evaluate_fits(gene_fits)
 ```
 
@@ -355,7 +365,7 @@ cdn <- new_cell_data_set(expression_matrix3,
                          gene_metadata = gene_annotation3)
 ```
 
-```{r}
+```{r results = FALSE, echo=FALSE, message=FALSE, warning=FALSE}
 cdn <- preprocess_cds(cdn)
 cdn <- reduce_dimension(cdn, reduction_method = 'UMAP')
 cdn <- cluster_cells(cdn)
@@ -367,7 +377,7 @@ neurons_cds <- cdn[,grepl("neurons", colData(cdn)$assigned_cell_type, ignore.cas
 plot_cells(neurons_cds)
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 plot_cells(cdt,
            color_cells_by = "cell.type",
            label_groups_by_cluster=FALSE,

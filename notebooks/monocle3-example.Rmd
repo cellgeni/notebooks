@@ -178,7 +178,9 @@ Loading a different data set in for example purposes. If you are usin  same data
 expression_matrix2 = readRDS("../data/monocle-data/packer_embryo_expression.rds")
 cell_metadata2 = readRDS("../data/monocle-data/packer_embryo_colData.rds")
 gene_annotation2 = readRDS("../data/monocle-data/packer_embryo_rowData.rds")
+```
 
+```{r}
 cdt <- new_cell_data_set(expression_matrix2,
                          cell_metadata = cell_metadata2,
                          gene_metadata = gene_annotation2)
@@ -224,7 +226,24 @@ plot_cells(cdt,
 Now you have to select which cells you want as you starting point. A pop up will appear with options "trust browser" or cancel. Click "try again". Then the graph should appear and you can select your starting cells.
 
 ```{r}
-cdt = order_cells(cdt)
+# a helper function to identify the root principal points:
+get_earliest_principal_node <- function(cds, time_bin="130-170"){
+  cell_ids <- which(colData(cds)[, "embryo.time.bin"] == time_bin)
+  
+  closest_vertex <-
+  cds@principal_graph_aux[["UMAP"]]$pr_graph_cell_proj_closest_vertex
+  closest_vertex <- as.matrix(closest_vertex[colnames(cds), ])
+  root_pr_nodes <-
+  igraph::V(principal_graph(cds)[["UMAP"]])$name[as.numeric(names
+  (which.max(table(closest_vertex[cell_ids,]))))]
+  
+  root_pr_nodes
+}
+```
+
+
+```{r}
+cdt = order_cells(cdt, root_pr_nodes=get_earliest_principal_node(cdt))
 ```
 
 ```{r}

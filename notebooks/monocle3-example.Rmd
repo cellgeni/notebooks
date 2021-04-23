@@ -2,16 +2,16 @@ In order to run monocle3 a few steps must first be followed. Monocle3 requires R
 1) Installing bioconductor:
 
 ```{r}
-#if (!requireNamespace("BiocManager", quietly = TRUE))
-#    install.packages("BiocManager")
-#BiocManager::install()
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install()
 ```
 
 A few bioconductor dependencies are not automatically installed so you should install the,.
 2) Installing bioconductor dependencies:
 
 ```{r}
-#BiocManager::install(c('BiocGenerics', 'DelayedArray', 'DelayedMatrixStats',
+BiocManager::install(c('BiocGenerics', 'DelayedArray', 'DelayedMatrixStats',
                    'limma', 'S4Vectors', 'SingleCellExperiment',
                    'SummarizedExperiment', 'batchelor'))
 ```
@@ -40,10 +40,12 @@ Finally libgdal-dev must also be installed on your terminal.
     sudo apt-get update    
     sudo apt-get install --fix-missing libgdal-dev
 Now we can finally installmonocle3.
+
 7)Installing monocle3:
 ```{r}
 devtools::install_github('cole-trapnell-lab/monocle3')
 ```
+
 8) Installing garnett:
 ```{r}
 BiocManager::install('org.Mm.eg.db')

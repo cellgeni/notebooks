@@ -1,0 +1,104 @@
+---
+title: "Removal of ambient RNA using SoupX"
+output: html_document
+---
+
+This notebook shows how to remove ambient RNA counts from 10X expression matrix using [SoupX](https://cran.r-project.org/web/packages/SoupX/vignettes/pbmcTutorial.html) package. The following code installs packages that will be required for the analysis. Normally you would only run these commands if you don't have the packages installed. 
+
+```{r}
+install.packages("SoupX")
+```
+
+Let's now load all the libraries that will be needed for the tutorial.
+
+```{r warning=FALSE,message=FALSE}
+library(Seurat)
+library(SoupX)
+library(DropletUtils)
+library(ggplot2)
+library(DoubletFinder)
+library(knitr)
+```
+
+In a common scenario, you start with the output of CellRanger or a similar tool. Here, we will download 10k of PBMC cells processed with CellRanger 4.0.0. CellRanger, STARsolo and other tools generate both raw and filtered matrices. The former contains empty droplets, while the latter is thought to contain mostly cells. Normally, filtered matrix is enough, but for ambient RNA removal we need both. 
+
+```{r}
+download.file("https://cf.10xgenomics.com/samples/cell-exp/4.0.0/Parent_NGSC3_DI_PBMC/Parent_NGSC3_DI_PBMC_filtered_feature_bc_matrix.h5",
+              destfile = "pbmc10k_filt.h5")
+download.file("https://cf.10xgenomics.com/samples/cell-exp/4.0.0/Parent_NGSC3_DI_PBMC/Parent_NGSC3_DI_PBMC_raw_feature_bc_matrix.h5",
+              destfile = "pbmc10k_raw.h5")
+```
+
+These are HDF5 data files, which is an efficient way to pack single cell expression matrices. Let's read them. Setting "use.names=F" will use Ensemble IDs instead of gene names for row identifiers. Few non-unique gene names are taken care of during the reading. 
+
+```{r warning=FALSE}
+filt.matrix <- Read10X_h5("pbmc10k_filt.h5",use.names = T)
+raw.matrix  <- Read10X_h5("pbmc10k_raw.h5",use.names = T)
+```
+
+This results in two objects of dgCMatrix class. Filtered matrix contains droplets that contain putative cells, while raw matrix also includes empty droplets with ambient RNA (soup). We can explore them as follows: 
+
+```{r}
+str(raw.matrix)
+str(filt.matrix)
+```
+
+We can make a Seurat object from the sparce matrix as follows: 
+
+```{r}
+srat  <- CreateSeuratObject(counts = filt.matrix)
+srat
+```
+
+Let's make a "SoupChannel", the object needed to run SoupX. Detailed info is available in SoupX vignette (see link above).
+
+```{r}
+soup.channel  <- SoupChannel(raw.matrix, filt.matrix)
+soup.channel
+```
+
+SoupX requires clusters in order to define marker genes. You can either use CellRanger clustering (see SoupX vignette), or quickly cluster using Seurat. We'll go for option 2 here. All the following steps will be addressed in more detail in the separate Seurat vignette.
+
+```{r warning=FALSE}
+srat    <- SCTransform(srat, verbose = F)
+srat    <- RunPCA(srat, verbose = F)
+srat    <- RunUMAP(srat, dims = 1:30, verbose = F)
+srat    <- FindNeighbors(srat, dims = 1:30, verbose = F)
+srat    <- FindClusters(srat, verbose = T)
+```
+
+After clustering is obtained, it can be added to the channel using setClusters. setDR is useful for visualizations. 
+
+```{r}
+meta    <- srat@meta.data
+umap    <- srat@reductions$umap@cell.embeddings
+soup.channel  <- setClusters(soup.channel, setNames(meta$seurat_clusters, rownames(meta)))
+soup.channel  <- setDR(soup.channel, umap)
+head(meta)
+```
+
+With defined clusters, run the main SoupX function, calculating ambient RNA profile.
+
+```{r}
+soup.channel  <- autoEstCont(soup.channel)
+```
+
+Genes with highest expression in background. These are often enriched for ribosomal proteins. 
+
+```{r}
+head(soup.channel$soupProfile[order(soup.channel$soupProfile$est, decreasing = T), ], n = 20)
+```
+
+We will use `roundToInt` option to make sure we output integer matrix.
+
+```{r warning=FALSE}
+adj.matrix  <- adjustCounts(soup.channel, roundToInt = T)
+```
+
+Finally, let's write the directory with corrected read counts. 
+
+```{r}
+DropletUtils:::write10xCounts("soupX_pbmc10k_filt", adj.matrix)
+```
+
+This outputs the matrix of soup-corrected reads which we will use for all future analysis.

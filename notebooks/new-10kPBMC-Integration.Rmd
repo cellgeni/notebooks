@@ -1,0 +1,350 @@
+---
+title: "Dataset integration using Seurat and other R tools"
+output: html_document
+---
+
+# scRNA-seq Dataset Integration using R-based tools
+
+```{r echo=FALSE}
+library(knitr)
+opts_chunk$set(cache = TRUE, out.width='100%', fig.align = 'center')
+```
+
+The code below will install some packages if you don't have them already.
+
+```{r warning=FALSE, message=FALSE}
+if (!require("RColorBrewer"))   install.packages("RColorBrewer")
+if (!require("knitr"))     install.packages("knitr")
+if (!require("dplyr"))     install.packages("dplyr")
+if (!require("cowplot"))   install.packages("cowplot")
+if (!require("harmony"))   install.packages("harmony")
+if (!require("rliger"))    install.packages("rliger")
+if (!require("remotes"))    install.packages("remotes")
+
+if (!require("SeuratWrappers"))     remotes::install_github('satijalab/seurat-wrappers')
+
+if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
+if (!require("glmGamPoi")) BiocManager::install("glmGamPoi")
+```
+
+Other packages required for this tutorial should already be installed in your JupyterHub by default: 
+
+```{r warning=FALSE, message=FALSE}
+library(Seurat)
+library(SeuratWrappers)
+library(DropletUtils)
+library(ggplot2)
+library(RColorBrewer)
+library(knitr)
+library(dplyr)
+library(harmony)
+library(rliger)
+library(glmGamPoi)
+library(patchwork)
+library(cowplot)
+```
+
+Let's also load a custom function, plot_integrated_clusters, that is stored in /data as `custom_seurat_functions.R`:
+
+```{r}
+source("../data/custom_seurat_functions.R")
+```
+
+## Introduction
+
+As more and more scRNA-seq datasets become available, carrying merged_seurat comparisons between them is key. There are two main approaches to comparing scRNASeq datasets. The first approach is "label-centric" which is focused on trying to identify equivalent cell-types/states across datasets by comparing individual cells or groups of cells. The other approach is "cross-dataset normalization" which attempts to computationally remove experiment-specific technical/biological effects so that data from multiple experiments can be combined and jointly analyzed.
+
+We will illustrate this process using two very different datasets: 1) 10k PBMC (3' v3 chemistry) downloaded from 10x Genomics website; 2) major cell populations isolated from whole human blood using FACS, and sequenced using STRT-seq (GSE149938). 
+
+Although we already have all the necessary files in our `/data` folder, we can download the necessary files from GEO database: 
+
+```{r eval=FALSE}
+download.file("https://ftp.ncbi.nlm.nih.gov/geo/series/GSE149nnn/GSE149938/suppl/GSE149938_umi_matrix.csv.gz",
+              destfile = "GSE149938_umi_matrix.csv.gz")
+download.file("https://cf.10xgenomics.com/samples/cell-exp/4.0.0/Parent_NGSC3_DI_PBMC/Parent_NGSC3_DI_PBMC_filtered_feature_bc_matrix.h5",
+              destfile = "pbmc10k_filt.h5")
+```
+
+Let's read the processed file available via GEO, and the 10x file we've processed using SoupX (see another notebook in this repository):
+
+```{r warning=FALSE}
+umi_gz <- gzfile("../data/GSE149938_umi_matrix.csv.gz",'rt')  
+umi <- read.csv(umi_gz,check.names = F,quote = "")
+matrix_3p    <- Read10X("../data/soupX_pbmc10k_filt")
+```
+
+Next, let's make `Seurat` objects and re-define some of the metadata columns (GEO dataset simply puts the cell type into the `orig.ident` slot, which will interfere with what we want to do next):
+
+```{r}
+srat_wb <- CreateSeuratObject(t(umi),project = "whole_blood")
+srat_3p <- CreateSeuratObject(matrix_3p,project = "pbmc10k_3p")
+rm(umi_gz)
+rm(umi)
+rm(matrix_3p)
+```
+
+```{r}
+colnames(srat_wb@meta.data)[1] <- "cell_type"
+srat_wb@meta.data$orig.ident <- "whole_blood"
+srat_wb@meta.data$orig.ident <- as.factor(srat_wb@meta.data$orig.ident)
+head(srat_wb[[]])
+```
+
+Do basic quality control. STRT-Seq is quite different from 10x and has a lot more detected genes per cell. Also, for some reason we don't have the MT genes in the quantified matrix of the whole blood dataset. That's unfortunate, but not critical. 
+
+```{r fig.align="center",warning=F,message=F}
+srat_wb <- SetIdent(srat_wb,value = "orig.ident")
+
+srat_wb[["percent.mt"]] <- PercentageFeatureSet(srat_wb, pattern = "^MT-")
+srat_wb[["percent.rbp"]] <- PercentageFeatureSet(srat_wb, pattern = "^RP[SL]")
+srat_3p[["percent.mt"]] <- PercentageFeatureSet(srat_3p, pattern = "^MT-")
+srat_3p[["percent.rbp"]] <- PercentageFeatureSet(srat_3p, pattern = "^RP[SL]")
+
+VlnPlot(srat_wb, features = c("nFeature_RNA","nCount_RNA","percent.mt","percent.rbp"), ncol = 4)
+VlnPlot(srat_3p, features = c("nFeature_RNA","nCount_RNA","percent.mt","percent.rbp"), ncol = 4)
+```
+
+
+The annotation that was used to process the GEO whole blood dataset is quite different from the Cell Ranger GRCh38-2020A. Let's see how many common genes are there:
+
+```{r}
+table(rownames(srat_3p) %in% rownames(srat_wb))
+common_genes <- rownames(srat_3p)[rownames(srat_3p) %in% rownames(srat_wb)]
+```
+
+Let's filter the cells with too high or too low number of genes, or too high MT gene content. Generally speaking, cleaner datasets (both in terms of ambient RNA and in terms of low-quality cells) integrate better. 
+
+Also, let's limit the individual matrices to common genes only: 
+
+```{r}
+srat_3p <- subset(srat_3p, subset = nFeature_RNA > 1000 & nFeature_RNA < 6000 & percent.mt < 15)
+srat_wb <- subset(srat_wb, subset = nFeature_RNA > 1000)
+
+srat_3p <- srat_3p[rownames(srat_3p) %in% common_genes,]
+srat_wb <- srat_wb[rownames(srat_wb) %in% common_genes,]
+```
+
+As previously for `Seurat` v3, let's make a list and normalize/find HVG for each object: 
+
+```{r}
+wb_list <- list()
+wb_list[["pbmc10k_3p"]]   <- srat_3p
+wb_list[["whole_blood"]]  <- srat_wb
+
+for (i in 1:length(wb_list)) {
+  wb_list[[i]] <- NormalizeData(wb_list[[i]], verbose = F)
+  wb_list[[i]] <- FindVariableFeatures(wb_list[[i]], selection.method = "vst", nfeatures = 2000, verbose = F)
+}
+```
+
+Here we actually do the integration. Seurat 3 does it in two steps. 
+
+```{r}
+wb_anchors <- FindIntegrationAnchors(object.list = wb_list, dims = 1:30)
+wb_seurat  <- IntegrateData(anchorset = wb_anchors, dims = 1:30)
+```
+
+```{r}
+rm(wb_list)
+rm(wb_anchors)
+```
+
+Let's do the basic processing and visualization of the uncorrected dataset: 
+
+```{r fig.align="center"}
+DefaultAssay(wb_seurat) <- "RNA"
+wb_seurat <- NormalizeData(wb_seurat, verbose = F)
+wb_seurat <- FindVariableFeatures(wb_seurat, selection.method = "vst", nfeatures = 2000, verbose = F)
+wb_seurat <- ScaleData(wb_seurat, verbose = F)
+wb_seurat <- RunPCA(wb_seurat, npcs = 30, verbose = F)
+wb_seurat <- RunUMAP(wb_seurat, reduction = "pca", dims = 1:30, verbose = F)
+
+DimPlot(wb_seurat, reduction = "umap") + plot_annotation(title = "10k 3' PBMC and whole blood, before integration")
+DimPlot(wb_seurat, reduction = "umap", group.by = "orig.ident", pt.size = .1, split.by = 'orig.ident') + NoLegend()
+```
+
+Now, let's take a look at the integrated dataset (it's already normalized and HVGs are selected): 
+
+```{r fig.align="center"}
+DefaultAssay(wb_seurat) <- "integrated"
+wb_seurat <- ScaleData(wb_seurat, verbose = F)
+wb_seurat <- RunPCA(wb_seurat, npcs = 30, verbose = F)
+wb_seurat <- RunUMAP(wb_seurat, reduction = "pca", dims = 1:30, verbose = F)
+
+DimPlot(wb_seurat, reduction = "umap") + plot_annotation(title = "10k 3' PBMC and white blood cells, after integration (Seurat 3)")
+```
+
+
+Let's look at some markers: 
+
+```{r fig.align="center",warning=F,message=F}
+FeaturePlot(wb_seurat,c("MS4A1","LYZ","NKG7","PPBP","LTF","HBA1","FCER1A","IL7R","FCGR3B")) & scale_colour_gradientn(colours = rev(brewer.pal(n = 11, name = "Spectral")))
+```
+
+From the plot we can see that there are some significant cell types that are absent from PBMC dataset, but exist in the whole blood dataset. LTF gene is the most prominent marker of neutrophils, and HBA1 is a hemoglobin gene expressed in erythrocytes. 
+
+Now let's cluster the integrated matrix and look how clusters are distributed between the two sets: 
+
+```{r fig.align="center"}
+wb_seurat <- FindNeighbors(wb_seurat, dims = 1:30, k.param = 10, verbose = F)
+wb_seurat <- FindClusters(wb_seurat, verbose = F)
+DimPlot(wb_seurat,label = T) + NoLegend()
+```
+
+Cluster composition shows many clusters unique to the whole blood dataset:
+
+```{r}
+count_table <- table(wb_seurat@meta.data$seurat_clusters, wb_seurat@meta.data$orig.ident)
+count_table
+```
+
+```{r fig.align="center"}
+plot_integrated_clusters(wb_seurat)
+```
+
+We can take advantage of the metadata that was present in GSE149938:
+
+```{r}
+meta <- wb_seurat[[]]
+table(meta[meta$seurat_clusters == '5',]$cell_type) ## erythrocytes
+table(meta[meta$seurat_clusters == '20',]$cell_type) ## neutrophils
+table(meta[meta$seurat_clusters == '24',]$cell_type) ## plasma B cells 
+```
+
+```{r}
+rm(wb_seurat)
+```
+
+## Harmony, 3' 10k PBMC cells and whole blood STRT-Seq
+
+Similarly to the previous approaches, let's make a merged `Seurat` dataset, normalize and process it:
+
+```{r}
+wb_harmony    <- merge(srat_3p,srat_wb)
+
+wb_harmony <- NormalizeData(wb_harmony, verbose = F)
+wb_harmony <- FindVariableFeatures(wb_harmony, selection.method = "vst", nfeatures = 2000, verbose = F)
+wb_harmony <- ScaleData(wb_harmony, verbose = F)
+wb_harmony <- RunPCA(wb_harmony, npcs = 30, verbose = F)
+wb_harmony <- RunUMAP(wb_harmony, reduction = "pca", dims = 1:30, verbose = F)
+```
+
+
+We can take a look at the PCA plot for a change, as well as distributions along the first principal component: 
+
+```{r fig.align="center"}
+p1 <- DimPlot(object = wb_harmony, reduction = "pca", pt.size = .1, group.by = "orig.ident") + NoLegend()
+p2 <- VlnPlot(object = wb_harmony, features = "PC_1", group.by = "orig.ident", pt.size = .1) + NoLegend()
+plot_grid(p1,p2)
+```
+
+UMAP also shows clear differences between the datasets (we saw this plot above already):
+
+```{r fig.align="center"}
+DimPlot(wb_harmony,reduction = "umap") + plot_annotation(title = "10k 3' PBMC and whole blood, before integration")
+```
+
+Let's run `harmony` using a simple wrapper named `RunHarmony` from `SeuratWrappers` library:
+
+```{r fig.align="center"}
+wb_harmony <- wb_harmony %>% RunHarmony("orig.ident", plot_convergence = T)
+```
+
+This generates the embeddings that we shall later use for all downstream analysis.
+
+```{r}
+harmony_embeddings <- Embeddings(wb_harmony, 'harmony')
+harmony_embeddings[1:5, 1:5]
+```
+
+Corrected PCA and distribution:
+
+```{r fig.align="center"}
+p1 <- DimPlot(object = wb_harmony, reduction = "harmony", pt.size = .1, group.by = "orig.ident") + NoLegend()
+p2 <- VlnPlot(object = wb_harmony, features = "harmony_1", group.by = "orig.ident", pt.size = .1) + NoLegend()
+plot_grid(p1,p2)
+```
+
+Run UMAP and perform Louvain clustering: 
+
+```{r}
+wb_harmony <- wb_harmony %>% 
+  RunUMAP(reduction = "harmony", dims = 1:30, verbose = F) %>% 
+  FindNeighbors(reduction = "harmony", k.param = 10, dims = 1:30) %>% 
+  FindClusters() %>% 
+  identity()
+```
+
+```{r fig.align="center"}
+wb_harmony <- SetIdent(wb_harmony,value = "orig.ident")
+DimPlot(wb_harmony,reduction = "umap") + plot_annotation(title = "10k 3' PBMC and whole blood, after integration (Harmony)")
+DimPlot(wb_harmony, reduction = "umap", group.by = "orig.ident", pt.size = .1, split.by = 'orig.ident') + NoLegend()
+```
+
+Corrected results for this dataset appear to be very similar to Seurat v3: 
+
+```{r fig.align="center"}
+wb_harmony <- SetIdent(wb_harmony,value = "seurat_clusters")
+DimPlot(wb_harmony,label = T) + NoLegend()
+```
+
+More detailed cluster examination also seems to confirm this: 
+
+```{r fig.align="center"}
+plot_integrated_clusters(wb_harmony) 
+```
+
+```{r}
+rm(wb_harmony)
+```
+
+## LIGER, 3' 10k PBMC cells and whole blood STRT-Seq
+
+Finally, let's do data integration with `LIGER`. This step takes several minutes to run: 
+
+```{r}
+wb_liger    <- merge(srat_3p,srat_wb)
+
+wb_liger    <- NormalizeData(wb_liger)
+wb_liger    <- FindVariableFeatures(wb_liger)
+wb_liger    <- ScaleData(wb_liger, split.by = "orig.ident", do.center = F)
+wb_liger    <- RunOptimizeALS(wb_liger, k = 30, lambda = 5, split.by = "orig.ident")
+wb_liger    <- RunQuantileNorm(wb_liger, split.by = "orig.ident")
+```
+
+We will then perform Louvain clustering (`FindNeighbors` and `FindClusters`) with the settings similar to what we have been using before: 
+
+```{r}
+wb_liger    <- FindNeighbors(wb_liger,reduction = "iNMF",k.param = 10,dims = 1:30)
+wb_liger    <- FindClusters(wb_liger)
+```
+
+Let's look at the corrected UMAP plot in a couple of different ways: 
+
+```{r fig.align="center"}
+wb_liger    <- RunUMAP(wb_liger, dims = 1:ncol(wb_liger[["iNMF"]]), reduction = "iNMF",verbose = F)
+wb_liger <- SetIdent(wb_liger,value = "orig.ident")
+DimPlot(wb_liger,reduction = "umap") + plot_annotation(title = "10k 3' PBMC and 10k 5' PBMC cells, after integration (LIGER)")
+DimPlot(wb_liger, reduction = "umap", group.by = "orig.ident", pt.size = .1, split.by = 'orig.ident') + NoLegend()
+```
+
+
+Finally, a look at distribution of datasets per cluster: 
+
+```{r fig.align="center"}
+plot_integrated_clusters(wb_liger)
+```
+
+```{r}
+rm(wb_liger)
+rm(srat_wb)
+rm(srat_3p)
+```
+
+### sessionInfo()
+
+<details><summary>View session info</summary>
+```{r echo=FALSE}
+sessionInfo()
+```
+</details>

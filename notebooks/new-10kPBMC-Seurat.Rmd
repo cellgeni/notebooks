@@ -5,28 +5,31 @@ output: html_document
 
 This vignette should introduce you to some typical tasks, using Seurat eco-system. Seurat vignettes are available [here](https://satijalab.org/seurat/articles/get_started.html). An alternative to this vignette in Python (using scanpy) is also available in the same repository. The interconversion and exploration of datasets from Python to Seurat (and SCE) is described in a separate vignette. Let's install the packages currently missing in a default JupyterHub environment. 
 
-Only run the chunk below if you're running the code for the first time, and do not have the packages installed.
+The code below will install some packages if you don't have them already.
 
-```{r eval=FALSE}
-remotes::install_github('chris-mcginnis-ucsf/DoubletFinder')
+```{r warning=FALSE, message=FALSE}
+if (!require("RColorBrewer"))   install.packages("RColorBrewer")
+if (!require("knitr"))     install.packages("knitr")
+if (!require("dplyr"))     install.packages("dplyr")
+
 if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
-BiocManager::install("celldex")
-BiocManager::install("SingleR")
-BiocManager::install("glmGamPoi")
+if (!require("celldex"))   BiocManager::install("celldex")
+if (!require("SingleR"))   BiocManager::install("SingleR")
+if (!require("glmGamPoi")) BiocManager::install("glmGamPoi")
 ```
 
-Let's now load all the libraries that will be needed for the tutorial.
+Other packages required for this tutorial should already be installed in your JupyterHub by default: 
 
 ```{r warning=FALSE, message=FALSE}
 library(Seurat)
 library(DropletUtils)
 library(ggplot2)
-library(DoubletFinder)
-library(SingleR)
+library(RColorBrewer)
+library(knitr)
 library(dplyr)
 library(celldex)
-library(knitr)
-library(RColorBrewer)
+library(glmGamPoi)
+library(SingleR)
 ```
 
 ### PART 1. Basic quality control and filtering.
